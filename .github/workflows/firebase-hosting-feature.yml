@@ -1,9 +1,5 @@
 name: Deploy feature branch to Firebase Hosting
-on:
-  push:
-    branches:
-      - 'feat/**'
-      - 'feature/**'
+on: workflow_dispatch
 permissions:
   contents: read
 jobs:
