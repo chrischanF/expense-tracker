@@ -1,7 +1,6 @@
 {
   "hosting": {
     "public": "dist/webapp/browser",
-    "target": "expense-tracker-a6042",
     "ignore": [
       "firebase.json",
       "**/.*",
