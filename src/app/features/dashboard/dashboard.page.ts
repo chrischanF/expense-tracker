@@ -31,6 +31,13 @@ export class DashboardPage {
   readonly incomeUsageRatio = computed(() => this.monthlyIncome() > 0
     ? this.summary().total / this.monthlyIncome() * 100
     : 0);
+  readonly budgetStatus = computed<'healthy' | 'watch' | 'critical' | 'over'>(() => {
+    const usage = this.incomeUsageRatio();
+    if (usage >= 100) return 'over';
+    if (usage >= 90) return 'critical';
+    if (usage >= 70) return 'watch';
+    return 'healthy';
+  });
 
   formatCurrency(value: number): string {
     return this.preferences.formatCurrency(value);

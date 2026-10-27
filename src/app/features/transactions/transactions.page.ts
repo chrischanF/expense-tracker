@@ -6,10 +6,11 @@ import { ActivatedRoute } from '@angular/router';
 import { ExpenseItem } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
 
 @Component({
   selector: 'app-transactions-page',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transactions.page.html',
 })
@@ -23,16 +24,24 @@ export class TransactionsPage {
   readonly showForm = signal(false);
   readonly editingExpenseId = signal<string | null>(null);
   readonly filteredExpenses = computed(() => this.expenseService.getExpensesByDateRange(this.range()));
+  readonly categories = ['Food', 'Transport', 'Housing', 'Bills', 'Shopping', 'Other'];
+  readonly categoryOptions: DropdownOption[] = this.categories.map((category) => ({ value: category, label: category }));
+  readonly rangeOptions: DropdownOption[] = [
+    { value: 'month', label: 'This month' },
+    { value: '30d', label: 'Last 30 days' },
+    { value: 'year', label: 'This year' },
+    { value: 'all', label: 'All time' },
+  ];
   readonly sourceOptions = computed(() => [...new Set([
     'Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Other',
     ...this.expenseService.expenses().map((expense) => expense.source || 'Other'),
   ])].sort((a, b) => a.localeCompare(b)));
+  readonly sourceDropdownOptions = computed<DropdownOption[]>(() => this.sourceOptions().map((source) => ({ value: source, label: source })));
   readonly amount = signal('');
   readonly category = signal('Food');
   readonly source = signal('Cash');
   readonly expenseDate = signal(new Date().toISOString().slice(0, 10));
   readonly note = signal('');
-  readonly categories = ['Food', 'Transport', 'Housing', 'Bills', 'Shopping', 'Other'];
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {

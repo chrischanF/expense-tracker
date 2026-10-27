@@ -42,11 +42,7 @@
       <div class="header-tools">
         <label class="currency-picker">
           <span>Currency</span>
-          <select [value]="preferences.currency()" (change)="onCurrencyChange($event)" aria-label="Currency">
-            @for (currency of preferences.currencyOptions; track currency) {
-              <option [value]="currency">{{ currency }}</option>
-            }
-          </select>
+          <app-dropdown [options]="currencyOptions()" [value]="preferences.currency()" (valueChange)="preferences.setCurrency($event)" ariaLabel="Currency" [compact]="true" />
         </label>
         <button type="button" class="theme-toggle" [attr.aria-label]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [title]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" (click)="toggleTheme()">
           @if (preferences.theme() === 'dark') { <span aria-hidden="true">☼</span> } @else { <span aria-hidden="true">◐</span> }

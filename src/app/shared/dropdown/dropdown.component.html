@@ -1,0 +1,33 @@
+<div class="dropdown" [class.compact]="compact" [class.open]="isOpen">
+  <button
+    type="button"
+    class="dropdown-trigger"
+    role="combobox"
+    aria-haspopup="listbox"
+    [attr.aria-label]="ariaLabel"
+    [attr.aria-expanded]="isOpen"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-activedescendant]="isOpen && options.length ? optionId(activeIndex) : null"
+    [disabled]="disabled"
+    (click)="toggle()"
+    (keydown)="handleKeydown($event)"
+  >
+    <span class="dropdown-value">{{ selectedOption?.label ?? value }}</span>
+    <span class="dropdown-chevron" aria-hidden="true"></span>
+  </button>
+  @if (isOpen) {
+    <div class="dropdown-menu" [id]="listboxId" role="listbox" [attr.aria-label]="ariaLabel">
+      @for (option of options; track option.value; let index = $index) {
+        <div
+          class="dropdown-option"
+          role="option"
+          [id]="optionId(index)"
+          [class.active]="activeIndex === index"
+          [attr.aria-selected]="value === option.value"
+          (mouseenter)="activeIndex = index"
+          (click)="select(option)"
+        >{{ option.label }}</div>
+      }
+    </div>
+  }
+</div>

@@ -18,9 +18,7 @@
       </label>
       <label>
         <span>Pay frequency</span>
-        <select [ngModel]="frequency()" (ngModelChange)="frequency.set($event); saved.set(false)" name="frequency">
-          @for (option of frequencyOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
-        </select>
+        <app-dropdown [options]="frequencyOptions" [value]="frequency()" (valueChange)="frequency.set($event); saved.set(false)" ariaLabel="Pay frequency" />
       </label>
       <label>
         <span>Next payday</span>

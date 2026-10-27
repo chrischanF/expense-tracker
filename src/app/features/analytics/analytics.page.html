@@ -6,10 +6,7 @@
   </div>
   <label class="source-filter">
     <span>Payment source</span>
-    <select [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)" aria-label="Filter analytics by payment source">
-      <option value="all">All sources</option>
-      @for (source of sourceOptions(); track source) { <option [value]="source">{{ source }}</option> }
-    </select>
+    <app-dropdown [options]="sourceFilterOptions()" [value]="sourceFilter()" (valueChange)="sourceFilter.set($event)" ariaLabel="Filter analytics by payment source" />
   </label>
 </section>
 

@@ -20,15 +20,11 @@
       </label>
       <label>
         <span>Category</span>
-        <select [ngModel]="category()" (ngModelChange)="category.set($event)" name="category">
-          @for (option of categories; track option) { <option [value]="option">{{ option }}</option> }
-        </select>
+        <app-dropdown [options]="categoryOptions" [value]="category()" (valueChange)="category.set($event)" ariaLabel="Category" />
       </label>
       <label>
         <span>Source</span>
-        <select [ngModel]="source()" (ngModelChange)="source.set($event)" name="source" required>
-          @for (option of sourceOptions(); track option) { <option [value]="option">{{ option }}</option> }
-        </select>
+        <app-dropdown [options]="sourceDropdownOptions()" [value]="source()" (valueChange)="source.set($event)" ariaLabel="Source" />
       </label>
       <label>
         <span>Date</span>
@@ -49,12 +45,7 @@
 <section class="panel transactions-panel">
   <div class="panel-heading activity-heading">
     <div><p class="section-kicker">Your money, in motion</p><h2>All transactions <span class="count-label">{{ filteredExpenses().length }}</span></h2></div>
-    <select [ngModel]="range()" (ngModelChange)="range.set($event)" aria-label="Filter transactions by date">
-      <option value="month">This month</option>
-      <option value="30d">Last 30 days</option>
-      <option value="year">This year</option>
-      <option value="all">All time</option>
-    </select>
+    <app-dropdown [options]="rangeOptions" [value]="range()" (valueChange)="range.set($event)" ariaLabel="Filter transactions by date" />
   </div>
   <div class="table-wrap">
     <table>

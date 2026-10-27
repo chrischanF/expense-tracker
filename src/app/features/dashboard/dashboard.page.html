@@ -13,12 +13,12 @@
     <strong>{{ formatCurrency(monthlyIncome()) }}</strong>
     <span>{{ incomeProfile().amount | number: '1.0-2' }} paid {{ frequencyLabel() }}</span>
   </article>
-  <article class="stat-card">
+  <article class="stat-card" [class.budget-watch]="budgetStatus() === 'watch'" [class.budget-critical]="budgetStatus() === 'critical'" [class.budget-over]="budgetStatus() === 'over'">
     <p>Spent this month</p>
     <strong>{{ formatCurrency(summary().total) }}</strong>
     <span>{{ incomeUsageRatio().toFixed(0) }}% of monthly income</span>
   </article>
-  <article class="stat-card">
+  <article class="stat-card" [class.budget-watch]="budgetStatus() === 'watch'" [class.budget-critical]="budgetStatus() === 'critical'" [class.budget-over]="budgetStatus() === 'over'">
     <p>Remaining</p>
     <strong class="remaining-value">{{ formatCurrency(remainingBalance()) }}</strong>
     <span>After recorded expenses</span>

@@ -3,10 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { IncomeFrequency, IncomeProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 
 @Component({
   selector: 'app-income-page',
-  imports: [FormsModule],
+  imports: [FormsModule, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './income.page.html',
 })

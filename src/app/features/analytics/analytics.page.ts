@@ -5,10 +5,11 @@ import type { ChartData, ChartOptions } from 'chart.js';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
 
 @Component({
   selector: 'app-analytics-page',
-  imports: [BaseChartDirective, FormsModule],
+  imports: [BaseChartDirective, FormsModule, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analytics.page.html',
 })
@@ -21,6 +22,10 @@ export class AnalyticsPage {
   readonly sourceFilter = signal('all');
   readonly sourceOptions = computed(() => [...new Set(this.expenseService.expenses().map((expense) => expense.source || 'Other'))]
     .sort((a, b) => a.localeCompare(b)));
+  readonly sourceFilterOptions = computed<DropdownOption[]>(() => [
+    { value: 'all', label: 'All sources' },
+    ...this.sourceOptions().map((source) => ({ value: source, label: source })),
+  ]);
   private readonly filteredExpenses = computed(() => this.analytics.filterBySource(
     this.expenseService.expenses(),
     this.sourceFilter(),
