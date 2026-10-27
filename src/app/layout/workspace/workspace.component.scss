@@ -57,6 +57,28 @@
   font-size: 0.68rem;
 }
 
+.period-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.period-picker app-dropdown {
+  width: min(320px, 60vw);
+
+  &::ng-deep button {
+    border: none !important;
+    background: inherit !important;
+  }
+}
+
 .currency-picker app-dropdown {
   width: auto;
   min-width: 55px;
@@ -158,6 +180,17 @@
     min-height: 38px;
     padding: 0 10px;
     font-size: 0.72rem;
+  }
+
+  .period-picker {
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+
+  .period-picker app-dropdown {
+    width: 260px;
   }
 
   .theme-toggle {

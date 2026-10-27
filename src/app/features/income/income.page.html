@@ -128,7 +128,7 @@
       <p class="section-kicker">Income history</p>
       <h2 id="saved-pay-periods-title">Pay periods</h2>
     </div>
-    <span class="income-stream-total">{{ payPeriodHistory().length }} saved</span>
+    <span class="income-stream-total"> {{ payPeriodHistory().length + incomeHistoryStreams().length }} saved </span>
   </div>
   <div class="pay-period-comparison">
     <div>
@@ -229,9 +229,9 @@
   }
   <div class="income-history-subsection">
     <h3>Other income history</h3>
-    @if (streams().length) {
+    @if (incomeHistoryStreams().length) {
       <div class="income-stream-list">
-        @for (stream of streams(); track stream.id) {
+        @for (stream of incomeHistoryStreams(); track stream.id) {
           <article class="income-stream-row">
             <div class="income-stream-description">
               <strong>{{ stream.name }}</strong>

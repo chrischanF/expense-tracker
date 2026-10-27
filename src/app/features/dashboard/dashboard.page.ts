@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
@@ -9,17 +9,14 @@ import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { BillReminderService } from '../../services/bill-reminder.service';
 import { PlanningService } from '../../services/planning.service';
 import { getUpcomingBills } from '../../services/planning.model';
-import { payPeriodForDate } from '../income/income.model';
+import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
-import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
-import type { DropdownOption } from '../../types/dropdown.types';
-import type { PayPeriod } from '../../types/income.types';
 import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [BudgetProgressComponent, DatePipe, DropdownComponent, LoaderComponent, RouterLink],
+  imports: [BudgetProgressComponent, DatePipe, LoaderComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
@@ -37,6 +34,7 @@ export class DashboardPage {
   private readonly expensesService = inject(ExpenseService);
   private readonly incomeStreams = inject(IncomeStreamService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly payPeriodFilter = inject(PayPeriodFilterService);
   readonly preferences = inject(AppPreferencesService);
   private readonly planning = inject(PlanningService);
   readonly exchangeRates = inject(ExchangeRateService);
@@ -56,22 +54,7 @@ export class DashboardPage {
 
   readonly expenses = this.expensesService.expenses;
   readonly incomeProfile = this.expensesService.incomeProfile;
-  readonly selectedPayPeriodKey = signal('');
-  readonly payPeriodOptions = computed(() =>
-    [...(this.incomeProfile().payPeriods ?? [])]
-      .sort((left, right) => right.startDate.localeCompare(left.startDate))
-      .map((period) => ({ period, key: this.payPeriodKey(period) })),
-  );
-  readonly payPeriodDropdownOptions = computed<DropdownOption[]>(() => {
-    const options = this.payPeriodOptions().map(({ period, key }) => ({
-      value: key,
-      label: `${this.formatPayPeriod(period)} · ${this.formatCurrency(period.amount)}`,
-    }));
-    return options.length ? options : [{ value: '', label: 'No saved pay periods' }];
-  });
-  readonly activePayPeriod = computed(
-    () => this.payPeriodOptions().find((option) => option.key === this.selectedPayPeriodKey())?.period ?? null,
-  );
+  readonly activePayPeriod = this.payPeriodFilter.selectedPeriod;
   readonly fixedMonthlyIncome = this.expensesService.monthlyIncome;
   readonly additionalIncomeThisMonth = this.incomeStreams.currentMonthTotal;
   readonly monthlyIncome = computed(() => this.fixedMonthlyIncome() + this.additionalIncomeThisMonth());
@@ -88,17 +71,10 @@ export class DashboardPage {
   readonly overviewExpenses = computed(() => {
     const period = this.activePayPeriod();
     if (!period) return this.baseMonthExpenses();
-    const startDate = toLocalDateInputValue(period.startDate);
-    const endDate = toLocalDateInputValue(period.endDate);
-    return this.expenses()
-      .filter((expense) => {
-        const expenseDate = toLocalDateInputValue(expense.date);
-        return expenseDate >= startDate && expenseDate <= endDate;
-      })
-      .map((expense) => ({
-        ...expense,
-        amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()) ?? 0,
-      }));
+    return this.payPeriodFilter.filterExpenses(this.expenses()).map((expense) => ({
+      ...expense,
+      amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()) ?? 0,
+    }));
   });
   readonly summary = computed(() => this.analytics.summarize(this.overviewExpenses()));
   readonly monthSummary = computed(() => this.analytics.summarize(this.baseMonthExpenses()));
@@ -192,30 +168,12 @@ export class DashboardPage {
     return bills.filter((bill) => !recorded.has(`${bill.id}:${toLocalDateInputValue(bill.dueDate).slice(0, 7)}`));
   });
 
-  constructor() {
-    effect(() => {
-      const options = this.payPeriodOptions();
-      const selectedKey = this.selectedPayPeriodKey();
-      if (options.some((option) => option.key === selectedKey)) return;
-      const currentPeriod = options.find((option) => payPeriodForDate([option.period]) !== null);
-      this.selectedPayPeriodKey.set(currentPeriod?.key ?? options[0]?.key ?? '');
-    });
-  }
-
   formatCurrency(value: number): string {
     return this.preferences.formatCurrency(value);
   }
 
   categoryIcon(category: string): string {
     return this.categoryIcons[category.trim().toLowerCase()] ?? '•';
-  }
-
-  payPeriodKey(period: PayPeriod): string {
-    return period.id ?? toLocalDateInputValue(period.startDate);
-  }
-
-  formatPayPeriod(period: PayPeriod): string {
-    return `${toLocalDateInputValue(period.startDate)} to ${toLocalDateInputValue(period.endDate)}`;
   }
 
   enableBillReminders(): void {

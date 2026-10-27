@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
+import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { ReceiptParserService } from '../../services/receipt-parser.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
@@ -23,6 +24,7 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 })
 export class TransactionsPage {
   private readonly expenseService = inject(ExpenseService);
+  readonly payPeriodFilter = inject(PayPeriodFilterService);
   private readonly document = inject(DOCUMENT);
   private readonly receiptParser = inject(ReceiptParserService);
   readonly preferences = inject(AppPreferencesService);
@@ -33,7 +35,11 @@ export class TransactionsPage {
   readonly range = signal<'month' | '30d' | 'year' | 'all'>('month');
   readonly showForm = signal(false);
   readonly editingExpenseId = signal<string | null>(null);
-  readonly filteredExpenses = computed(() => this.expenseService.getExpensesByDateRange(this.range()));
+  readonly filteredExpenses = computed(() =>
+    this.payPeriodFilter.selectedPeriod()
+      ? this.payPeriodFilter.filterExpenses(this.expenseService.expenses())
+      : this.expenseService.getExpensesByDateRange(this.range()),
+  );
   readonly categories = ['Food', 'Transport', 'Housing', 'Bills', 'Shopping', 'Other'];
   readonly categoryOptions: DropdownOption[] = this.categories.map((category) => ({
     value: category,

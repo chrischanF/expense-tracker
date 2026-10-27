@@ -12,6 +12,7 @@ import {
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { IncomeStreamService } from '../../services/income-stream.service';
+import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
@@ -28,6 +29,7 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 export class IncomePage {
   private readonly expenseService = inject(ExpenseService);
   private readonly incomeStreamService = inject(IncomeStreamService);
+  private readonly payPeriodFilter = inject(PayPeriodFilterService);
   readonly preferences = inject(AppPreferencesService);
   readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
   readonly firestoreLoaderMessage = computed(() =>
@@ -41,12 +43,14 @@ export class IncomePage {
     payPeriodForCurrentMonth(this.profile()) ?? { startDate: '', endDate: '', amount: 0 },
   );
   readonly payPeriodHistory = computed(() =>
-    [...(this.profile().payPeriods ?? [])].sort((left, right) => right.startDate.localeCompare(left.startDate)),
+    [...this.payPeriodFilter.filterPayPeriods(this.profile().payPeriods ?? [])].sort((left, right) =>
+      right.startDate.localeCompare(left.startDate),
+    ),
   );
   readonly averageIncomeEntry = computed(() => {
     const amounts = [
       ...this.payPeriodHistory().map((period) => period.amount),
-      ...this.streams().map((stream) => stream.amount),
+      ...this.incomeHistoryStreams().map((stream) => stream.amount),
     ];
     return amounts.length ? amounts.reduce((total, amount) => total + amount, 0) / amounts.length : 0;
   });
@@ -54,7 +58,7 @@ export class IncomePage {
     Math.max(
       0,
       ...this.payPeriodHistory().map((period) => period.amount),
-      ...this.streams().map((stream) => stream.amount),
+      ...this.incomeHistoryStreams().map((stream) => stream.amount),
     ),
   );
   readonly editingPayPeriodId = signal<string | null>(null);
@@ -65,6 +69,7 @@ export class IncomePage {
   readonly saved = signal(false);
   private readonly incomeFormDirty = signal(false);
   readonly streams = this.incomeStreamService.streams;
+  readonly incomeHistoryStreams = computed(() => this.payPeriodFilter.filterIncomeStreams(this.streams()));
   readonly additionalIncomeThisMonth = this.incomeStreamService.currentMonthTotal;
   readonly streamTypeOptions: DropdownOption[] = [
     'Freelance',

@@ -9,13 +9,6 @@
     <p>Track your spending and see what is available this month.</p>
   </div>
   <div class="page-intro-actions">
-    <app-dropdown
-      [options]="payPeriodDropdownOptions()"
-      [value]="selectedPayPeriodKey()"
-      (valueChange)="selectedPayPeriodKey.set($event)"
-      [disabled]="!payPeriodOptions().length"
-      ariaLabel="Filter dashboard by pay period"
-    />
     <a
       class="primary-button add-expense-button"
       routerLink="/transactions"

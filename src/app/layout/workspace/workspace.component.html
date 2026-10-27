@@ -9,6 +9,15 @@
       class="header-tools"
       data-tour="global-tools"
     >
+      <label class="period-picker">
+        <span>Pay period</span>
+        <app-dropdown
+          [options]="payPeriodOptions()"
+          [value]="payPeriodFilter.selectedKey() ?? 'all-periods'"
+          (valueChange)="selectPayPeriod($event)"
+          ariaLabel="Filter app by pay period"
+        />
+      </label>
       <label class="currency-picker">
         <span>Currency</span>
         <app-dropdown

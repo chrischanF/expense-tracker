@@ -175,12 +175,16 @@
       >
         ↓ CSV
       </button>
-      <app-dropdown
-        [options]="rangeOptions"
-        [value]="range()"
-        (valueChange)="range.set($event)"
-        ariaLabel="Filter transactions by date"
-      />
+      @if (payPeriodFilter.selectedPeriod()) {
+        <span class="source-label">Selected pay period</span>
+      } @else {
+        <app-dropdown
+          [options]="rangeOptions"
+          [value]="range()"
+          (valueChange)="range.set($event)"
+          ariaLabel="Filter transactions by date"
+        />
+      }
     </div>
   </div>
   <div class="table-wrap">
