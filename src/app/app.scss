@@ -671,6 +671,7 @@ tbody tr:hover { background: var(--surface-soft); }
   .header-date { max-width: 250px; font-size: 0.78rem; }
   .header-tools { gap: 6px; }
   .currency-picker { gap: 4px; padding: 0 7px; }
+  .planning-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px;}
   // .currency-picker span { display: none; }
   .currency-picker app-dropdown { min-width: 55px; }
   .theme-toggle { flex-basis: 34px; width: 34px; height: 34px; }
@@ -717,7 +718,7 @@ tbody tr:hover { background: var(--surface-soft); }
   margin-top: 16px;
 }
 
-.planning-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.planning-summary-grid { display: flex; flex-direction: column; gap: 1.2rem; }
 .safe-spend-panel, .bill-reminders-panel { min-width: 0; }
 .safe-spend-panel .panel-heading, .bill-reminders-panel .panel-heading { margin-bottom: 12px; }
 .segmented-control { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-soft); }
