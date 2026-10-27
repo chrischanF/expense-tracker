@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
@@ -32,6 +32,7 @@ export class IncomePage {
   readonly payAmounts = signal(payAmountsForProfile(this.profile()));
   readonly nextPayDate = signal(toLocalDateInputValue(this.profile().nextPayDate));
   readonly saved = signal(false);
+  private readonly incomeFormDirty = signal(false);
   readonly streams = this.incomeStreamService.streams;
   readonly additionalIncomeThisMonth = this.incomeStreamService.currentMonthTotal;
   readonly streamTypeOptions: DropdownOption[] = [
@@ -70,11 +71,22 @@ export class IncomePage {
     { value: 'monthly', label: 'Monthly', detail: '12 pay periods per year' },
   ];
 
+  constructor() {
+    effect(() => {
+      const profile = this.profile();
+      if (this.incomeFormDirty()) return;
+      this.frequency.set(profile.frequency);
+      this.payAmounts.set(payAmountsForProfile(profile));
+      this.nextPayDate.set(toLocalDateInputValue(profile.nextPayDate));
+    });
+  }
+
   formatCurrency(value: number): string {
     return this.preferences.formatCurrency(value);
   }
 
   setFrequency(frequency: IncomeFrequency): void {
+    this.incomeFormDirty.set(true);
     const currentAmounts = this.payAmounts();
     const fallbackAmount = this.averagePayAmount();
     this.frequency.set(frequency);
@@ -85,12 +97,19 @@ export class IncomePage {
   }
 
   updatePayAmount(index: number, value: string): void {
+    this.incomeFormDirty.set(true);
     const amount = Number(value);
     this.payAmounts.update((current) =>
       current.map((existing, currentIndex) =>
         currentIndex === index ? (Number.isFinite(amount) ? amount : 0) : existing,
       ),
     );
+    this.saved.set(false);
+  }
+
+  updateNextPayDate(value: string): void {
+    this.incomeFormDirty.set(true);
+    this.nextPayDate.set(value);
     this.saved.set(false);
   }
 
@@ -106,6 +125,7 @@ export class IncomePage {
       frequency: this.frequency(),
       nextPayDate: this.nextPayDate(),
     };
+    this.incomeFormDirty.set(false);
     this.expenseService.setIncomeProfile(profile);
     this.saved.set(true);
   }
