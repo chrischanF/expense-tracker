@@ -1,5 +1,6 @@
-import { Injectable, effect, signal } from '@angular/core';
+import { computed, Injectable, effect, signal } from '@angular/core';
 import type { Firestore } from 'firebase/firestore';
+import { IncomeProfile, toLocalDateInputValue, toMonthlyIncome } from '../features/income/income.model';
 import { ExpenseItem } from './analytics.service';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
@@ -20,7 +21,8 @@ export class ExpenseService {
   private syncRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly expenses = signal<ExpenseItem[]>(this.readExpenses(this.guestStorageKey));
-  readonly monthlyIncome = signal<number>(this.readIncome());
+  readonly incomeProfile = signal<IncomeProfile>(this.readIncomeProfile());
+  readonly monthlyIncome = computed(() => toMonthlyIncome(this.incomeProfile()));
   readonly syncStatus = signal('Local only');
 
   constructor(
@@ -35,13 +37,17 @@ export class ExpenseService {
     });
   }
 
-  setMonthlyIncome(value: number): void {
-    const next = Number(value) || 0;
-    this.monthlyIncome.set(next);
-    this.writeIncome(next);
+  setIncomeProfile(profile: IncomeProfile): void {
+    const next: IncomeProfile = {
+      amount: Number(profile.amount) || 0,
+      frequency: profile.frequency,
+      nextPayDate: profile.nextPayDate,
+    };
+    this.incomeProfile.set(next);
+    this.writeIncomeProfile(next);
   }
 
-  addExpense(expense: Omit<ExpenseItem, 'id' | 'createdAt'>): void {
+  addExpense(expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'source'> & { source?: string }): void {
     const draft: ExpenseItem = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
@@ -49,6 +55,7 @@ export class ExpenseService {
       amount: Number(expense.amount) || 0,
       note: expense.note || '',
       category: expense.category || 'Other',
+      source: expense.source?.trim() || 'Other',
     };
 
     this.expenses.update((current) => {
@@ -119,10 +126,18 @@ export class ExpenseService {
 
     try {
       const raw = localStorage.getItem(key);
-      return raw ? (JSON.parse(raw) as ExpenseItem[]) : [];
+      const parsed = raw ? JSON.parse(raw) as ExpenseItem[] : [];
+      return Array.isArray(parsed) ? parsed.map((expense) => this.normalizeExpense(expense)) : [];
     } catch {
       return [];
     }
+  }
+
+  private normalizeExpense(expense: ExpenseItem): ExpenseItem {
+    return {
+      ...expense,
+      source: typeof expense.source === 'string' && expense.source.trim() ? expense.source.trim() : 'Other',
+    };
   }
 
   private persistExpenses(items: ExpenseItem[]): void {
@@ -226,7 +241,7 @@ export class ExpenseService {
       this.unsubscribeExpenses = onSnapshot(
         collection(firestore, 'users', userId, 'expenses'),
         (snapshot) => {
-          const cloudExpenses = snapshot.docs.map((entry) => ({ ...entry.data(), id: entry.id } as ExpenseItem));
+          const cloudExpenses = snapshot.docs.map((entry) => this.normalizeExpense({ ...entry.data(), id: entry.id } as ExpenseItem));
           const pending = new Map(this.pendingChanges);
           const merged = new Map(cloudExpenses.map((expense) => [expense.id, expense]));
           for (const [id, change] of pending) {
@@ -283,7 +298,7 @@ export class ExpenseService {
       this.syncStatus.set('Synced');
     } catch (e){
       console.log('Sync Error: ', e)
-      this.syncStatus.set('Sync failed: Offline or Firebase unavailable; changes are saved locally');
+      this.syncStatus.set('Sync failed: Firebase unavailable; changes are saved locally');
       this.scheduleSyncRetry();
     } finally {
       this.syncInProgress = false;
@@ -309,24 +324,57 @@ export class ExpenseService {
     }
   }
 
-  private readIncome(): number {
+  private readIncomeProfile(): IncomeProfile {
     if (typeof localStorage === 'undefined') {
-      return 50000;
+      return this.defaultIncomeProfile();
     }
 
     try {
       const raw = localStorage.getItem(this.incomeStorageKey);
-      return raw ? Number(JSON.parse(raw)) || 0 : 50000;
+      if (!raw) {
+        return this.defaultIncomeProfile();
+      }
+
+      const stored: unknown = JSON.parse(raw);
+      if (typeof stored === 'number') {
+        return { ...this.defaultIncomeProfile(), amount: stored };
+      }
+
+      if (typeof stored === 'object' && stored !== null && 'amount' in stored) {
+        const profile = stored as Partial<IncomeProfile>;
+        const frequency = ['weekly', 'biweekly', 'twice-monthly', 'monthly'].includes(String(profile.frequency))
+          ? profile.frequency as IncomeProfile['frequency']
+          : 'monthly';
+        return {
+          amount: Number(profile.amount) || 0,
+          frequency,
+          nextPayDate: typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
+        };
+      }
     } catch {
-      return 50000;
+      return this.defaultIncomeProfile();
     }
+
+    return this.defaultIncomeProfile();
   }
 
-  private writeIncome(value: number): void {
+  private defaultIncomeProfile(): IncomeProfile {
+    return {
+      amount: 50000,
+      frequency: 'monthly',
+      nextPayDate: toLocalDateInputValue(new Date()),
+    };
+  }
+
+  private writeIncomeProfile(profile: IncomeProfile): void {
     if (typeof localStorage === 'undefined') {
       return;
     }
 
-    localStorage.setItem(this.incomeStorageKey, JSON.stringify(value));
+    try {
+      localStorage.setItem(this.incomeStorageKey, JSON.stringify(profile));
+    } catch {
+      this.syncStatus.set('Income is updated for this session, but browser storage is unavailable.');
+    }
   }
 }
