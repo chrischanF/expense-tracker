@@ -1,14 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  averagePayAmount,
-  mergePayPeriodHistory,
-  payAmountCount,
-  payAmountsForProfile,
-  payPeriodForCurrentMonth,
-  toMonthlyIncome,
-} from './income.model';
+import { averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { IncomeStreamService } from '../../services/income-stream.service';
@@ -39,9 +32,6 @@ export class IncomePage {
 
   readonly frequency = signal<IncomeFrequency>(this.profile().frequency);
   readonly payAmounts = signal(payAmountsForProfile(this.profile()));
-  readonly payPeriodDraft = signal(
-    payPeriodForCurrentMonth(this.profile()) ?? { startDate: '', endDate: '', amount: 0 },
-  );
   readonly payPeriodHistory = computed(() =>
     [...this.payPeriodFilter.filterPayPeriods(this.profile().payPeriods ?? [])].sort((left, right) =>
       right.startDate.localeCompare(left.startDate),
@@ -113,7 +103,6 @@ export class IncomePage {
       if (this.incomeFormDirty()) return;
       this.frequency.set(profile.frequency);
       this.payAmounts.set(payAmountsForProfile(profile));
-      this.payPeriodDraft.set(payPeriodForCurrentMonth(profile) ?? { startDate: '', endDate: '', amount: 0 });
       this.nextPayDate.set(toLocalDateInputValue(profile.nextPayDate));
     });
   }
@@ -150,40 +139,16 @@ export class IncomePage {
     this.saved.set(false);
   }
 
-  updatePayPeriod(field: 'startDate' | 'endDate', value: string): void {
-    this.incomeFormDirty.set(true);
-    this.payPeriodDraft.update((period) => ({ ...period, [field]: value }));
-    this.saved.set(false);
-  }
-
   saveIncome(): void {
     const payAmounts = this.payAmounts().map(Number);
-    const hasMultiplePaydays = payAmountCount(this.frequency()) > 1;
-    const payPeriodDraft = this.payPeriodDraft();
-    if (
-      payAmounts.some((amount) => !Number.isFinite(amount) || amount <= 0) ||
-      !this.nextPayDate() ||
-      (hasMultiplePaydays &&
-        (!payPeriodDraft.startDate || !payPeriodDraft.endDate || payPeriodDraft.startDate > payPeriodDraft.endDate))
-    ) {
-      return;
-    }
+    if (payAmounts.some((amount) => !Number.isFinite(amount) || amount < 0) || !this.nextPayDate()) return;
 
-    const savedPeriods: PayPeriod[] = hasMultiplePaydays
-      ? [
-          {
-            ...payPeriodDraft,
-            id: payPeriodDraft.id ?? crypto.randomUUID(),
-            amount: payAmounts.reduce((total, amount) => total + amount, 0),
-          },
-        ]
-      : [];
     const profile: IncomeProfile = {
       amount: averagePayAmount(payAmounts),
       payAmounts,
       frequency: this.frequency(),
       nextPayDate: this.nextPayDate(),
-      payPeriods: mergePayPeriodHistory(this.profile().payPeriods ?? [], savedPeriods),
+      payPeriods: this.profile().payPeriods ?? [],
     };
     this.incomeFormDirty.set(false);
     this.expenseService.setIncomeProfile(profile);
@@ -194,7 +159,7 @@ export class IncomePage {
     const amount = Number(this.payPeriodAmount());
     const startDate = this.payPeriodStart();
     const endDate = this.payPeriodEnd();
-    if (!startDate || !endDate || startDate > endDate || !Number.isFinite(amount) || amount <= 0) return;
+    if (!startDate || !endDate || startDate > endDate || !Number.isFinite(amount) || amount < 0) return;
 
     const id = this.editingPayPeriodId() ?? crypto.randomUUID();
     const period: PayPeriod = { id, startDate, endDate, amount };
@@ -237,7 +202,7 @@ export class IncomePage {
 
   saveIncomeStream(): void {
     const amount = Number(this.streamAmount());
-    if (!this.streamName().trim() || !Number.isFinite(amount) || amount <= 0 || !this.streamDate()) return;
+    if (!this.streamName().trim() || !Number.isFinite(amount) || amount < 0 || !this.streamDate()) return;
     const stream = {
       name: this.streamName().trim(),
       type: this.streamType(),

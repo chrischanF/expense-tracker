@@ -39,31 +39,6 @@
           </div>
         </label>
       }
-      @if (payAmounts().length > 1) {
-        <div class="pay-period-fields">
-          <label>
-            <span>Pay period from</span>
-            <input
-              type="date"
-              [ngModel]="payPeriodDraft().startDate"
-              (ngModelChange)="updatePayPeriod('startDate', $event)"
-              name="payPeriodStart"
-              required
-            />
-          </label>
-          <label>
-            <span>Pay period to</span>
-            <input
-              type="date"
-              [ngModel]="payPeriodDraft().endDate"
-              (ngModelChange)="updatePayPeriod('endDate', $event)"
-              name="payPeriodEnd"
-              [min]="payPeriodDraft().startDate || null"
-              required
-            />
-          </label>
-        </div>
-      }
       <label>
         <span>Pay frequency</span>
         <app-dropdown
@@ -84,8 +59,7 @@
         />
       </label>
       <p class="field-hint">
-        Enter each payday amount and one shared date range. Saved pay periods are kept for current-month and historical
-        spending analysis. The monthly baseline uses the average paycheck across a full year.
+        Enter each payday amount. The monthly baseline uses the average paycheck across a full year.
       </p>
       <div class="income-submit-row">
         @if (saved()) {

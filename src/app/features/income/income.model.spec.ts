@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   additionalIncomeForMonth,
   averagePayAmount,
-  mergePayPeriodHistory,
   payAmountCount,
   payAmountsForProfile,
   payPeriodForDate,
-  payPeriodForCurrentMonth,
   toLocalDateInputValue,
   toMonthlyIncome,
 } from './income.model';
@@ -106,19 +104,7 @@ describe('pay period history', () => {
     ],
   };
 
-  it('loads saved ranges overlapping the selected month', () => {
-    expect(payPeriodForCurrentMonth(profile, new Date(2026, 9, 20))).toEqual(profile.payPeriods?.[0]);
-  });
-
   it('finds the saved period containing a date', () => {
     expect(payPeriodForDate(profile.payPeriods ?? [], new Date(2026, 9, 20))).toEqual(profile.payPeriods?.[0]);
-  });
-
-  it('retains older periods and replaces a saved range with the same start date', () => {
-    const updated = { startDate: '2026-10-01', endDate: '2026-10-30', amount: 1250 };
-    const history = mergePayPeriodHistory(profile.payPeriods ?? [], [updated]);
-    expect(history).toHaveLength(2);
-    expect(history[0]).toEqual(updated);
-    expect(history[1]).toEqual(profile.payPeriods?.[1]);
   });
 });
