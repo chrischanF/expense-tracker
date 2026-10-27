@@ -39,6 +39,31 @@
           </div>
         </label>
       }
+      @if (payAmounts().length > 1) {
+        <div class="pay-period-fields">
+          <label>
+            <span>Pay period from</span>
+            <input
+              type="date"
+              [ngModel]="payPeriodDraft().startDate"
+              (ngModelChange)="updatePayPeriod('startDate', $event)"
+              name="payPeriodStart"
+              required
+            />
+          </label>
+          <label>
+            <span>Pay period to</span>
+            <input
+              type="date"
+              [ngModel]="payPeriodDraft().endDate"
+              (ngModelChange)="updatePayPeriod('endDate', $event)"
+              name="payPeriodEnd"
+              [min]="payPeriodDraft().startDate || null"
+              required
+            />
+          </label>
+        </div>
+      }
       <label>
         <span>Pay frequency</span>
         <app-dropdown
@@ -59,8 +84,8 @@
         />
       </label>
       <p class="field-hint">
-        Enter a separate amount for each typical payday. Weekly uses four amounts; biweekly and twice-monthly use two.
-        The monthly baseline uses the average paycheck across a full year.
+        Enter each payday amount and one shared date range. Saved pay periods are kept for current-month and historical
+        spending analysis. The monthly baseline uses the average paycheck across a full year.
       </p>
       <div class="income-submit-row">
         @if (saved()) {
@@ -95,8 +120,156 @@
 </div>
 
 <section
+  class="panel saved-pay-periods"
+  aria-labelledby="saved-pay-periods-title"
+>
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">Income history</p>
+      <h2 id="saved-pay-periods-title">Pay periods</h2>
+    </div>
+    <span class="income-stream-total">{{ payPeriodHistory().length }} saved</span>
+  </div>
+  <div class="pay-period-comparison">
+    <div>
+      <span>Average income entry</span><strong>{{ formatCurrency(averageIncomeEntry()) }}</strong>
+    </div>
+    <div>
+      <span>Highest income entry</span><strong>{{ formatCurrency(highestIncomeEntry()) }}</strong>
+    </div>
+  </div>
+  <form
+    class="income-stream-form pay-period-form"
+    (ngSubmit)="savePayPeriod()"
+  >
+    <label>
+      <span>From</span>
+      <input
+        type="date"
+        [ngModel]="payPeriodStart()"
+        (ngModelChange)="payPeriodStart.set($event)"
+        name="historyPeriodStart"
+        required
+      />
+    </label>
+    <label>
+      <span>To</span>
+      <input
+        type="date"
+        [ngModel]="payPeriodEnd()"
+        (ngModelChange)="payPeriodEnd.set($event)"
+        name="historyPeriodEnd"
+        [min]="payPeriodStart() || null"
+        required
+      />
+    </label>
+    <label>
+      <span>Income amount</span>
+      <div class="input-with-prefix">
+        <span>{{ preferences.currency() }}</span
+        ><input
+          type="number"
+          min="0.01"
+          step="0.01"
+          [ngModel]="payPeriodAmount()"
+          (ngModelChange)="payPeriodAmount.set($event)"
+          name="historyPeriodAmount"
+          required
+        />
+      </div>
+    </label>
+    <div class="income-stream-submit">
+      @if (editingPayPeriodId()) {
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="resetPayPeriodForm()"
+        >
+          Cancel
+        </button>
+      }
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        {{ editingPayPeriodId() ? 'Save changes' : 'Add pay period' }}
+      </button>
+    </div>
+  </form>
+  @if (payPeriodHistory().length) {
+    <div class="income-stream-list">
+      @for (period of payPeriodHistory(); track payPeriodKey(period)) {
+        <article class="income-stream-row">
+          <div class="income-stream-description">
+            <strong>{{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}</strong>
+            <span>Income recorded</span>
+          </div>
+          <strong class="income-stream-amount">{{ formatCurrency(period.amount) }}</strong>
+          <div class="income-stream-actions">
+            <button
+              type="button"
+              class="table-action edit-action"
+              (click)="editPayPeriod(period)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="table-action delete-action"
+              (click)="deletePayPeriod(period)"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="empty-state">No pay periods saved yet.</p>
+  }
+  <div class="income-history-subsection">
+    <h3>Other income history</h3>
+    @if (streams().length) {
+      <div class="income-stream-list">
+        @for (stream of streams(); track stream.id) {
+          <article class="income-stream-row">
+            <div class="income-stream-description">
+              <strong>{{ stream.name }}</strong>
+              <span>
+                {{ stream.type }} · {{ stream.repeatsMonthly ? 'Monthly since ' : 'Received '
+                }}{{ stream.date | date: 'mediumDate' }}
+              </span>
+            </div>
+            <strong class="income-stream-amount">{{ formatCurrency(stream.amount) }}</strong>
+            <div class="income-stream-actions">
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="editIncomeStream(stream)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="table-action delete-action"
+                (click)="deleteIncomeStream(stream.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="empty-state">No other income entries yet.</p>
+    }
+  </div>
+</section>
+
+<section
   class="panel income-streams"
   aria-labelledby="income-streams-title"
+  id="other-income-section"
 >
   <div class="panel-heading">
     <div>
@@ -184,39 +357,4 @@
       </button>
     </div>
   </form>
-
-  @if (streams().length) {
-    <div class="income-stream-list">
-      @for (stream of streams(); track stream.id) {
-        <article class="income-stream-row">
-          <div class="income-stream-description">
-            <strong>{{ stream.name }}</strong>
-            <span
-              >{{ stream.type }} · {{ stream.repeatsMonthly ? 'Monthly from ' : 'Received '
-              }}{{ stream.date | date: 'mediumDate' }}</span
-            >
-          </div>
-          <strong class="income-stream-amount">{{ formatCurrency(stream.amount) }}</strong>
-          <div class="income-stream-actions">
-            <button
-              type="button"
-              class="table-action edit-action"
-              (click)="editIncomeStream(stream)"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              class="table-action delete-action"
-              (click)="deleteIncomeStream(stream.id)"
-            >
-              Delete
-            </button>
-          </div>
-        </article>
-      }
-    </div>
-  } @else {
-    <p class="empty-state">No secondary income added yet.</p>
-  }
 </section>

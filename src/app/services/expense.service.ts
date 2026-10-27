@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
 import { normalizeDateToIsoUtc } from '../utils/date-normalization';
-import type { IncomeProfile } from '../types/income.types';
+import type { IncomeProfile, PayPeriod } from '../types/income.types';
 import type { ExpenseItem } from '../types/analytics.types';
 import type { PendingExpenseChange } from '../types/expense.types';
 
@@ -53,6 +53,7 @@ export class ExpenseService {
       payAmounts,
       frequency: profile.frequency,
       nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate),
+      payPeriods: profile.payPeriods ?? [],
     };
     this.incomeProfile.set(next);
     this.writeIncomeProfile(next, this.incomeStorageKey());
@@ -425,9 +426,42 @@ export class ExpenseService {
       payAmounts: profile.payAmounts,
       frequency: profile.frequency as IncomeProfile['frequency'],
       nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate),
+      payPeriods: this.normalizePayPeriods(profile.payPeriods),
     };
     const payAmounts = payAmountsForProfile(candidate);
     return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };
+  }
+
+  private normalizePayPeriods(value: unknown): PayPeriod[] {
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => {
+      if (typeof item !== 'object' || item === null) return [];
+      const period = item as Partial<PayPeriod>;
+      if (
+        typeof period.startDate !== 'string' ||
+        typeof period.endDate !== 'string' ||
+        typeof period.amount !== 'number' ||
+        !Number.isFinite(period.amount) ||
+        period.amount < 0
+      ) {
+        return [];
+      }
+      try {
+        const startDate = normalizeDateToIsoUtc(period.startDate);
+        const endDate = normalizeDateToIsoUtc(period.endDate);
+        if (toLocalDateInputValue(startDate) > toLocalDateInputValue(endDate)) return [];
+        return [
+          {
+            id: typeof period.id === 'string' && period.id ? period.id : `period-${toLocalDateInputValue(startDate)}`,
+            startDate,
+            endDate,
+            amount: period.amount,
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
   }
 
   private listenToCloudIncome(): void {

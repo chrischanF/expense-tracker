@@ -8,17 +8,26 @@
     <h2>Overview</h2>
     <p>Track your spending and see what is available this month.</p>
   </div>
-  <a
-    class="primary-button"
-    routerLink="/transactions"
-    [queryParams]="{ action: 'add' }"
-    ><span aria-hidden="true">＋</span> Add expense</a
-  >
+  <div class="page-intro-actions">
+    <app-dropdown
+      [options]="payPeriodDropdownOptions()"
+      [value]="selectedPayPeriodKey()"
+      (valueChange)="selectedPayPeriodKey.set($event)"
+      [disabled]="!payPeriodOptions().length"
+      ariaLabel="Filter dashboard by pay period"
+    />
+    <a
+      class="primary-button add-expense-button"
+      routerLink="/transactions"
+      [queryParams]="{ action: 'add' }"
+      ><span aria-hidden="true">＋</span> Add expense</a
+    >
+  </div>
 </section>
 
 <section
   class="stats-grid"
-  aria-label="Monthly summary"
+  aria-label="Financial summary"
 >
   <article class="stat-card income-stat">
     <p>Monthly income</p>
@@ -30,13 +39,29 @@
   </article>
   <article
     class="stat-card"
-    [class.budget-watch]="budgetStatus() === 'watch'"
-    [class.budget-critical]="budgetStatus() === 'critical'"
-    [class.budget-over]="budgetStatus() === 'over'"
+    [class.budget-watch]="payPeriodBudgetStatus() === 'watch'"
+    [class.budget-critical]="payPeriodBudgetStatus() === 'critical'"
+    [class.budget-over]="payPeriodBudgetStatus() === 'over'"
+  >
+    <p>Spent this pay period</p>
+    <strong>{{ formatCurrency(activePayPeriod() ? summary().total : 0) }}</strong>
+    <span>
+      @if (activePayPeriod()) {
+        {{ payPeriodUsageRatio().toFixed(0) }}% of pay-period income
+      } @else {
+        Set pay dates on the Income page
+      }
+    </span>
+  </article>
+  <article
+    class="stat-card"
+    [class.budget-watch]="monthlyBudgetStatus() === 'watch'"
+    [class.budget-critical]="monthlyBudgetStatus() === 'critical'"
+    [class.budget-over]="monthlyBudgetStatus() === 'over'"
   >
     <p>Spent this month</p>
-    <strong>{{ formatCurrency(summary().total) }}</strong>
-    <span>{{ incomeUsageRatio().toFixed(0) }}% of monthly income</span>
+    <strong>{{ formatCurrency(monthSummary().total) }}</strong>
+    <span>{{ monthlyIncomeUsageRatio().toFixed(0) }}% of monthly income</span>
   </article>
   <article
     class="stat-card"
@@ -46,7 +71,7 @@
   >
     <p>Remaining</p>
     <strong class="remaining-value">{{ formatCurrency(remainingBalance()) }}</strong>
-    <span>After recorded expenses</span>
+    <span>{{ activePayPeriod() ? 'After pay-period expenses' : 'After recorded expenses' }}</span>
   </article>
   <article class="stat-card">
     <p>Next payday</p>

@@ -9,8 +9,44 @@
   gap: 16px;
 }
 
-.income-streams {
+.income-streams,
+.saved-pay-periods {
   margin-top: 16px;
+}
+
+.pay-period-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.pay-period-comparison > div {
+  display: grid;
+  gap: 4px;
+}
+
+.pay-period-comparison span {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.pay-period-comparison strong {
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.income-history-subsection {
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+
+.income-history-subsection h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 650;
 }
 
 .income-stream-total {
@@ -146,6 +182,14 @@
 .income-form {
   display: grid;
   gap: 17px;
+}
+
+.pay-period-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 0 5px 12px;
+  border-left: 2px solid var(--line);
 }
 
 .income-form .input-with-prefix {

@@ -44,6 +44,23 @@
   font-size: 1.38rem !important;
 }
 
+.page-intro-actions {
+  display: flex;
+  min-width: 0;
+  // flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  .add-expense-button {
+    min-width: 130px;
+  }
+}
+
+.page-intro-actions app-dropdown {
+  width: min(320px, 100%);
+  min-width: min(220px, 100%);
+}
+
 .dashboard-grid,
 .planning-summary-grid {
   display: grid;
