@@ -55,6 +55,14 @@ Expenses are saved in browser local storage immediately. When signed in, queued 
 
 Recurring transactions, category budgets, and savings goals are also stored locally first and synced under the signed-in user's `recurring`, `budgets`, and `goals` subcollections. Active recurring transactions generate one ledger expense per month on their configured due day. The dashboard shows category budget progress, Analytics includes category pie and 30-day/year trend charts, and Transactions exports the currently filtered rows as a CSV file.
 
+## Capture, currencies, and reminders
+
+Transactions can be drafted from a receipt image with client-side Tesseract OCR or from browser speech recognition. Recognition fills the editable form and never saves an expense automatically. Speech-recognition availability and processing are controlled by the browser.
+
+Each transaction and recurring commitment can use its own currency. The selected app currency is the base currency for summaries. Live rates are fetched from `open.er-api.com` and cached in local storage; when a foreign-currency rate is unavailable, that amount is omitted from converted totals and shown as unavailable rather than being treated as base currency.
+
+The dashboard's daily and weekly safe-to-spend estimate subtracts recorded monthly expenses, active recurring commitments not yet recorded this month, and each goal's optional monthly contribution. Browser bill alerts require explicit permission and run while the app is open; background push delivery would require a push service and server-side scheduling.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

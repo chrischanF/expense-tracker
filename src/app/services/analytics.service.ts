@@ -8,6 +8,8 @@ export interface ExpenseItem {
   date: string;
   note: string;
   createdAt: string;
+  currency?: string;
+  merchant?: string;
   recurringId?: string;
   recurringMonth?: string;
 }

@@ -1,8 +1,8 @@
 <div class="app-layout">
   <aside class="sidebar" aria-label="Main navigation">
     <a class="brand" routerLink="/dashboard" aria-label="Ledger home">
-      <span class="brand-mark" aria-hidden="true">L</span>
-      <span>ledger<span class="brand-period">.</span></span>
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span>Penny<span class="brand-period">Wise.</span></span>
     </a>
 
     <div class="sidebar-label">Workspace</div>
@@ -39,16 +39,20 @@
     <header class="page-header">
       <div>
         <p class="eyebrow">Personal finances</p>
-        <h1>Ledger</h1>
-        <p class="header-date">A clear view of where your money goes.</p>
+        <!-- <h1>Ledger</h1>
+        <p class="header-date">A clear view of where your money goes.</p> -->
       </div>
-      <div class="header-tools">
+      <div class="header-tools" data-tour="global-tools">
         <label class="currency-picker">
           <span>Currency</span>
           <app-dropdown [options]="currencyOptions()" [value]="preferences.currency()" (valueChange)="preferences.setCurrency($event)" ariaLabel="Currency" [compact]="true" />
         </label>
         <button type="button" class="theme-toggle" [attr.aria-label]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [title]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" (click)="toggleTheme()">
           @if (preferences.theme() === 'dark') { <span aria-hidden="true">☼</span> } @else { <span aria-hidden="true">◐</span> }
+        </button>
+        <button type="button" class="tour-button" data-tour="page-tour-button" aria-label="Start tour for this page" title="Start a tour for this page" (click)="startPageTour()">
+          <span class="tour-icon" aria-hidden="true">?</span>
+          <span>Tour</span>
         </button>
       </div>
     </header>

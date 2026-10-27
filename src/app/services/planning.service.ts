@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import type { Firestore } from 'firebase/firestore';
 import { ExpenseService } from './expense.service';
+import { AppPreferencesService } from './app-preferences.service';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
 import { CategoryBudget, RecurringTransaction, SavingsGoal, recurringDateForMonth } from './planning.model';
@@ -19,6 +20,7 @@ interface PendingPlanningChange {
 @Injectable({ providedIn: 'root' })
 export class PlanningService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly preferences = inject(AppPreferencesService);
   private readonly pendingChanges = new Map<string, PendingPlanningChange>();
   private readonly unsubscribeCollections: Array<() => void> = [];
   private userId: string | null = null;
@@ -83,6 +85,7 @@ export class PlanningService {
       id: crypto.randomUUID(),
       name: input.name.trim(),
       targetAmount: Number(input.targetAmount),
+      monthlyContribution: Math.max(0, Number(input.monthlyContribution) || 0),
       savedAmount: 0,
       createdAt: new Date().toISOString(),
     };
@@ -116,6 +119,7 @@ export class PlanningService {
       }
       this.expenses.addExpense({
         amount: item.amount,
+        currency: item.currency || this.preferences.currency(),
         category: item.category,
         source: item.source,
         date: recurringDateForMonth(today.getFullYear(), today.getMonth(), item.dueDay),

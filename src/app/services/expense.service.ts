@@ -1,6 +1,6 @@
 import { computed, Injectable, effect, signal } from '@angular/core';
 import type { Firestore } from 'firebase/firestore';
-import { IncomeProfile, toLocalDateInputValue, toMonthlyIncome } from '../features/income/income.model';
+import { IncomeProfile, averagePayAmount, payAmountsForProfile, toLocalDateInputValue, toMonthlyIncome } from '../features/income/income.model';
 import { ExpenseItem } from './analytics.service';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
@@ -38,8 +38,10 @@ export class ExpenseService {
   }
 
   setIncomeProfile(profile: IncomeProfile): void {
+    const payAmounts = payAmountsForProfile(profile);
     const next: IncomeProfile = {
-      amount: Number(profile.amount) || 0,
+      amount: averagePayAmount(payAmounts),
+      payAmounts,
       frequency: profile.frequency,
       nextPayDate: profile.nextPayDate,
     };
@@ -341,7 +343,7 @@ export class ExpenseService {
 
       const stored: unknown = JSON.parse(raw);
       if (typeof stored === 'number') {
-        return { ...this.defaultIncomeProfile(), amount: stored };
+        return { amount: stored, payAmounts: [stored], frequency: 'monthly', nextPayDate: this.defaultIncomeProfile().nextPayDate };
       }
 
       if (typeof stored === 'object' && stored !== null && 'amount' in stored) {
@@ -349,11 +351,16 @@ export class ExpenseService {
         const frequency = ['weekly', 'biweekly', 'twice-monthly', 'monthly'].includes(String(profile.frequency))
           ? profile.frequency as IncomeProfile['frequency']
           : 'monthly';
-        return {
+        const candidate: IncomeProfile = {
           amount: Number(profile.amount) || 0,
+          payAmounts: Array.isArray(profile.payAmounts)
+            ? profile.payAmounts.map((amount) => Number(amount)).filter((amount) => Number.isFinite(amount) && amount >= 0)
+            : undefined,
           frequency,
           nextPayDate: typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
         };
+        const payAmounts = payAmountsForProfile(candidate);
+        return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };
       }
     } catch {
       return this.defaultIncomeProfile();
@@ -365,6 +372,7 @@ export class ExpenseService {
   private defaultIncomeProfile(): IncomeProfile {
     return {
       amount: 50000,
+      payAmounts: [50000],
       frequency: 'monthly',
       nextPayDate: toLocalDateInputValue(new Date()),
     };

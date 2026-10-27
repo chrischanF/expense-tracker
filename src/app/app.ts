@@ -6,6 +6,8 @@ import { ExpenseService } from './services/expense.service';
 import { FirebaseService } from './services/firebase.service';
 import { AppPreferencesService } from './services/app-preferences.service';
 import { PlanningService } from './services/planning.service';
+import { TourService } from './services/tour.service';
+import { BillReminderService } from './services/bill-reminder.service';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +20,8 @@ export class App {
   private readonly firebaseService = inject(FirebaseService);
   private readonly expenseService = inject(ExpenseService);
   private readonly planningService = inject(PlanningService);
+  private readonly tourService = inject(TourService);
+  private readonly billReminderService = inject(BillReminderService);
   readonly preferences = inject(AppPreferencesService);
   readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({
     value: currency,
@@ -39,5 +43,9 @@ export class App {
 
   toggleTheme(): void {
     this.preferences.toggleTheme();
+  }
+
+  startPageTour(): void {
+    this.tourService.startPageTour();
   }
 }

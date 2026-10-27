@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
+import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { PlanningService } from '../../services/planning.service';
 import { EXPENSE_CATEGORIES, RecurringTransaction } from '../../services/planning.model';
 import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
@@ -15,17 +16,21 @@ import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dr
 export class RecurringPage {
   private readonly planning = inject(PlanningService);
   readonly preferences = inject(AppPreferencesService);
+  readonly exchangeRates = inject(ExchangeRateService);
   readonly items = this.planning.recurringTransactions;
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));
   readonly sources: DropdownOption[] = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Other']
     .map((source) => ({ value: source, label: source }));
-  readonly activeTotal = computed(() => this.items().filter((item) => item.active).reduce((total, item) => total + item.amount, 0));
+  readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({ value: currency, label: currency })));
+  readonly activeTotal = computed(() => this.items().filter((item) => item.active).reduce((total, item) =>
+    total + (this.exchangeRates.toBase(item.amount, item.currency || this.preferences.currency()) ?? 0), 0));
 
   readonly editingId = signal<string | null>(null);
   readonly name = signal('');
   readonly amount = signal('');
   readonly category = signal<string>(EXPENSE_CATEGORIES[0]);
   readonly source = signal('Bank Transfer');
+  readonly currency = signal(this.preferences.currency());
   readonly dueDay = signal(String(new Date().getDate()));
 
   save(): void {
@@ -39,6 +44,7 @@ export class RecurringPage {
       amount,
       category: this.category(),
       source: this.source(),
+      currency: this.currency(),
       dueDay,
       active: true,
     };
@@ -58,6 +64,7 @@ export class RecurringPage {
     this.amount.set(String(item.amount));
     this.category.set(item.category);
     this.source.set(item.source);
+    this.currency.set(item.currency || this.preferences.currency());
     this.dueDay.set(String(item.dueDay));
   }
 
@@ -76,6 +83,7 @@ export class RecurringPage {
     this.amount.set('');
     this.category.set(EXPENSE_CATEGORIES[0]);
     this.source.set('Bank Transfer');
+    this.currency.set(this.preferences.currency());
     this.dueDay.set(String(new Date().getDate()));
   }
 

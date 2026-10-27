@@ -30,6 +30,48 @@
   </article>
 </section>
 
+<section class="planning-summary-grid" aria-label="Spending plan and reminders">
+  <article class="panel safe-spend-panel">
+    <div class="panel-heading">
+      <div><p class="section-kicker">After bills and savings</p><h2>Safe to spend</h2></div>
+      <div class="segmented-control" aria-label="Allowance period">
+        <button type="button" [class.active]="allowancePeriod() === 'daily'" (click)="allowancePeriod.set('daily')">Today</button>
+        <button type="button" [class.active]="allowancePeriod() === 'weekly'" (click)="allowancePeriod.set('weekly')">7 days</button>
+      </div>
+    </div>
+    <strong class="safe-spend-amount">{{ formatCurrency(safeToSpendAmount()) }}</strong>
+    <p class="safe-spend-caption">{{ formatCurrency(safeToSpendPlan().remaining) }} left across {{ safeToSpendPlan().daysRemaining }} days this month</p>
+    <p class="safe-spend-note">Based on recorded spending, unpaid recurring bills, and planned monthly goal contributions.</p>
+    @if (exchangeRates.isLoading()) { <p class="safe-spend-note" role="status">Refreshing exchange rates; foreign-currency amounts are temporarily excluded.</p> }
+    @if (exchangeRates.error()) { <p class="rate-warning" role="status">{{ exchangeRates.error() }} Foreign amounts are excluded from converted totals until a rate is available.</p> }
+  </article>
+
+  <article class="panel bill-reminders-panel">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Next seven days</p><h2>Bill reminders</h2></div>
+      @if (billReminders.isSupported() && billReminders.permission() !== 'granted') {
+        <button type="button" class="table-action edit-action" (click)="enableBillReminders()">Enable alerts</button>
+      } @else if (billReminders.permission() === 'granted') {
+        <span class="notification-enabled" role="status">Alerts on</span>
+      }
+    </div>
+    @if (upcomingBills().length) {
+      <div class="bill-reminder-list">
+        @for (bill of upcomingBills(); track bill.id) {
+          <div class="bill-reminder-row">
+            <div><strong>{{ bill.name }}</strong><span>{{ bill.category }} · {{ bill.dueDate | date: 'mediumDate' }}</span></div>
+            <div class="bill-reminder-due"><strong>{{ preferences.formatCurrency(bill.amount, bill.currency || preferences.currency()) }}</strong><span>{{ bill.daysUntilDue === 0 ? 'Due today' : 'In ' + bill.daysUntilDue + ' days' }}</span></div>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="empty-state">No active bills are due in the next seven days.</p>
+    }
+    @if (!billReminders.isSupported()) { <p class="safe-spend-note">Browser notifications are unavailable; reminders remain visible in the dashboard.</p> }
+    @else { <p class="safe-spend-note">Browser alerts run while the app is open. Dashboard reminders remain available any time.</p> }
+  </article>
+</section>
+
 @if (budgetProgress().length) {
   <section class="panel dashboard-budgets" aria-labelledby="dashboard-budgets-title">
     <div class="panel-heading">

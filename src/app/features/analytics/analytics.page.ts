@@ -4,6 +4,7 @@ import type { ChartData, ChartOptions } from 'chart.js';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
 
 @Component({
@@ -16,6 +17,7 @@ export class AnalyticsPage {
   private readonly expenseService = inject(ExpenseService);
   private readonly analytics = inject(AnalyticsService);
   private readonly preferences = inject(AppPreferencesService);
+  readonly exchangeRates = inject(ExchangeRateService);
 
   private readonly palette = ['#168878', '#e3a23b', '#607f9b', '#d9755e', '#81a94c', '#9b7bb5'];
   readonly sourceFilter = signal('all');
@@ -30,8 +32,15 @@ export class AnalyticsPage {
     { value: 'all', label: 'All sources' },
     ...this.sourceOptions().map((source) => ({ value: source, label: source })),
   ]);
+  private readonly baseExpenses = computed(() => this.expenseService.expenses()
+    .map((expense) => ({
+      expense,
+      amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),
+    }))
+    .filter((entry) => entry.amount !== null)
+    .map(({ expense, amount }) => ({ ...expense, amount: amount ?? 0 })));
   private readonly filteredExpenses = computed(() => this.analytics.filterBySource(
-    this.expenseService.expenses(),
+    this.baseExpenses(),
     this.sourceFilter(),
   ));
   private readonly summary = computed(() => this.analytics.summarize(this.filteredExpenses()));

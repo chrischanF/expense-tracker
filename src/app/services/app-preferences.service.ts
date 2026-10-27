@@ -29,10 +29,10 @@ export class AppPreferencesService {
     this.persist('expense-tracker.selected-currency', currency);
   }
 
-  formatCurrency(value: number): string {
+  formatCurrency(value: number, currency = this.currency()): string {
     return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: this.currency(),
+      currency,
       maximumFractionDigits: 2,
     }).format(value);
   }

@@ -13,10 +13,22 @@
       <div><p class="section-kicker">Track a payment</p><h2 id="transaction-form-title">{{ editingExpenseId() ? 'Edit expense' : 'New expense' }}</h2></div>
       <button type="button" class="icon-link" aria-label="Close expense form" (click)="cancelEdit()">×</button>
     </div>
+    <div class="capture-controls">
+      <label class="capture-upload">
+        <span aria-hidden="true">▧</span> Scan receipt
+        <input type="file" accept="image/*" capture="environment" aria-label="Scan a receipt image" (change)="scanReceipt($event)" />
+      </label>
+      <button type="button" class="secondary-button" [disabled]="isCapturing()" (click)="startVoiceLogging()"><span aria-hidden="true">◉</span> Voice log</button>
+      @if (captureStatus()) { <span class="capture-status" role="status">{{ captureStatus() }}</span> }
+    </div>
     <form class="expense-form" (ngSubmit)="submitExpense()">
       <label>
         <span>Amount</span>
-        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" placeholder="0.00" required /></div>
+        <div class="input-with-prefix"><span>{{ currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" placeholder="0.00" required /><app-dropdown [options]="currencyOptions()" [value]="currency()" (valueChange)="currency.set($event)" ariaLabel="Transaction currency" [compact]="true" /></div>
+      </label>
+      <label>
+        <span>Merchant <small>Optional</small></span>
+        <input type="text" [ngModel]="merchant()" (ngModelChange)="merchant.set($event)" name="merchant" maxlength="80" placeholder="Store or service" />
       </label>
       <label>
         <span>Category</span>
@@ -52,18 +64,19 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Date</th><th>Category</th><th>Source</th><th>Note</th><th class="amount-col">Amount</th><th class="action-col">Actions</th></tr></thead>
+      <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Source</th><th>Note</th><th class="amount-col">Amount</th><th class="action-col">Actions</th></tr></thead>
       <tbody>
         @if (filteredExpenses().length === 0) {
-          <tr><td colspan="6" class="empty-state">No expenses saved for this period.</td></tr>
+          <tr><td colspan="7" class="empty-state">No expenses saved for this period.</td></tr>
         }
         @for (expense of filteredExpenses(); track expense.id) {
           <tr>
             <td>{{ expense.date | date: 'mediumDate' }}</td>
+            <td>{{ expense.merchant || '—' }}</td>
             <td><span class="badge">{{ expense.category }}</span></td>
             <td><span class="source-label">{{ expense.source || 'Other' }}</span></td>
             <td>{{ expense.note || '—' }}</td>
-            <td class="amount-col amount-value">{{ formatCurrency(expense.amount) }}</td>
+            <td class="amount-col amount-value">{{ formatExpenseCurrency(expense) }}<small class="converted-amount">{{ formatBaseAmount(expense) }}</small></td>
             <td class="action-col action-buttons">
               <button type="button" class="table-action edit-action" (click)="startEdit(expense)">Edit</button>
               <button type="button" class="table-action delete-action" (click)="deleteExpense(expense.id)">Delete</button>

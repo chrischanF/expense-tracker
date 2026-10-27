@@ -4,7 +4,7 @@
     <h2>Recurring transactions</h2>
     <p>Keep fixed bills in your ledger automatically.</p>
   </div>
-  <div class="recurring-total"><span>Active monthly total</span><strong>{{ formatCurrency(activeTotal()) }}</strong></div>
+  <div class="recurring-total"><span>Active monthly total · {{ preferences.currency() }}</span><strong>{{ formatCurrency(activeTotal()) }}</strong></div>
 </section>
 
 <section class="recurring-layout">
@@ -19,7 +19,7 @@
       </label>
       <label>
         <span>Amount per month</span>
-        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" required /></div>
+        <div class="input-with-prefix"><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" required /><app-dropdown [options]="currencyOptions()" [value]="currency()" (valueChange)="currency.set($event)" ariaLabel="Recurring expense currency" [compact]="true" /></div>
       </label>
       <label>
         <span>Category</span>
@@ -51,9 +51,9 @@
           <article class="commitment-row" [class.inactive]="!item.active">
             <div class="commitment-copy">
               <strong>{{ item.name }}</strong>
-              <span>{{ item.category }} · Day {{ item.dueDay }} · {{ item.source }}</span>
+              <span>{{ item.category }} · Day {{ item.dueDay }} · {{ item.source }} · {{ item.currency || preferences.currency() }}</span>
             </div>
-            <strong class="commitment-amount">{{ formatCurrency(item.amount) }}</strong>
+            <strong class="commitment-amount">{{ preferences.formatCurrency(item.amount, item.currency || preferences.currency()) }}</strong>
             <div class="commitment-actions">
               <button type="button" class="table-action edit-action" (click)="toggle(item)">{{ item.active ? 'Pause' : 'Resume' }}</button>
               <button type="button" class="table-action edit-action" (click)="edit(item)">Edit</button>

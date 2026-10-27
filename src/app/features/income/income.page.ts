@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IncomeFrequency, IncomeProfile, toMonthlyIncome } from './income.model';
+import { IncomeFrequency, IncomeProfile, averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
@@ -16,16 +16,18 @@ export class IncomePage {
   readonly preferences = inject(AppPreferencesService);
   private readonly profile = this.expenseService.incomeProfile;
 
-  readonly amount = signal(String(this.profile().amount));
   readonly frequency = signal<IncomeFrequency>(this.profile().frequency);
+  readonly payAmounts = signal(payAmountsForProfile(this.profile()));
   readonly nextPayDate = signal(this.profile().nextPayDate);
   readonly saved = signal(false);
+  readonly averagePayAmount = computed(() => averagePayAmount(this.payAmounts()));
   readonly monthlyEquivalent = computed(() => toMonthlyIncome({
-    amount: Number(this.amount()),
+    amount: this.averagePayAmount(),
+    payAmounts: this.payAmounts(),
     frequency: this.frequency(),
     nextPayDate: this.nextPayDate(),
   }));
-  readonly payAmount = computed(() => Number(this.amount()) || 0);
+  readonly payAmountSlots = computed(() => this.payAmounts().map((amount, index) => ({ amount, index })));
   readonly frequencyDetail = computed(() => this.frequencyOptions.find((option) => option.value === this.frequency())?.detail ?? '');
   readonly frequencyOptions: Array<{ value: IncomeFrequency; label: string; detail: string }> = [
     { value: 'weekly', label: 'Weekly', detail: '52 pay periods per year' },
@@ -38,14 +40,31 @@ export class IncomePage {
     return this.preferences.formatCurrency(value);
   }
 
+  setFrequency(frequency: IncomeFrequency): void {
+    const currentAmounts = this.payAmounts();
+    const fallbackAmount = this.averagePayAmount();
+    this.frequency.set(frequency);
+    this.payAmounts.set(Array.from({ length: payAmountCount(frequency) }, (_, index) => currentAmounts[index] ?? fallbackAmount));
+    this.saved.set(false);
+  }
+
+  updatePayAmount(index: number, value: string): void {
+    const amount = Number(value);
+    this.payAmounts.update((current) => current.map((existing, currentIndex) => currentIndex === index
+      ? (Number.isFinite(amount) ? amount : 0)
+      : existing));
+    this.saved.set(false);
+  }
+
   saveIncome(): void {
-    const amount = Number(this.amount());
-    if (!Number.isFinite(amount) || amount <= 0 || !this.nextPayDate()) {
+    const payAmounts = this.payAmounts().map(Number);
+    if (payAmounts.some((amount) => !Number.isFinite(amount) || amount <= 0) || !this.nextPayDate()) {
       return;
     }
 
     const profile: IncomeProfile = {
-      amount,
+      amount: averagePayAmount(payAmounts),
+      payAmounts,
       frequency: this.frequency(),
       nextPayDate: this.nextPayDate(),
     };

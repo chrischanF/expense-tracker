@@ -87,8 +87,8 @@ export class DropdownComponent {
     }
 
     this.value = option.value;
-    this.valueChange.emit(this.value);
     this.close();
+    this.valueChange.emit(this.value);
   }
 
   @HostListener('document:click', ['$event'])

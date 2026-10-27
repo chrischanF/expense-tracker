@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IncomeProfile, toLocalDateInputValue, toMonthlyIncome } from './income.model';
+import { IncomeProfile, averagePayAmount, payAmountCount, payAmountsForProfile, toLocalDateInputValue, toMonthlyIncome } from './income.model';
 
 describe('toMonthlyIncome', () => {
   it.each([
@@ -14,6 +14,28 @@ describe('toMonthlyIncome', () => {
   it('treats invalid and non-positive amounts as zero', () => {
     expect(toMonthlyIncome({ amount: Number.NaN, frequency: 'monthly', nextPayDate: '' })).toBe(0);
     expect(toMonthlyIncome({ amount: -100, frequency: 'weekly', nextPayDate: '' })).toBe(0);
+  });
+
+  it('creates one amount slot per expected payday for each frequency', () => {
+    expect(payAmountCount('weekly')).toBe(4);
+    expect(payAmountCount('biweekly')).toBe(2);
+    expect(payAmountCount('twice-monthly')).toBe(2);
+    expect(payAmountCount('monthly')).toBe(1);
+  });
+
+  it('fills legacy profiles from their saved per-payday amount', () => {
+    expect(payAmountsForProfile({ amount: 1250, frequency: 'biweekly', nextPayDate: '' })).toEqual([1250, 1250]);
+  });
+
+  it('normalizes variable paychecks using their average amount', () => {
+    const profile: IncomeProfile = {
+      amount: 0,
+      payAmounts: [1000, 1200, 1100, 1300],
+      frequency: 'weekly',
+      nextPayDate: '2026-10-30',
+    };
+    expect(averagePayAmount(profile.payAmounts ?? [])).toBe(1150);
+    expect(toMonthlyIncome(profile)).toBeCloseTo(1150 * 52 / 12);
   });
 
   it('formats the calendar day for a date input in local time', () => {

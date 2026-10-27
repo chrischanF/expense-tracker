@@ -22,6 +22,7 @@ export class GoalsPage {
 
   readonly name = signal('');
   readonly targetAmount = signal('');
+  readonly monthlyContribution = signal('');
   readonly targetDate = signal('');
 
   createGoal(): void {
@@ -30,10 +31,12 @@ export class GoalsPage {
     this.planning.addGoal({
       name: this.name().trim(),
       targetAmount,
+      monthlyContribution: Number(this.monthlyContribution()) || 0,
       targetDate: this.targetDate(),
     });
     this.name.set('');
     this.targetAmount.set('');
+    this.monthlyContribution.set('');
     this.targetDate.set('');
   }
 
