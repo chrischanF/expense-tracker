@@ -47,15 +47,19 @@ export class ExpenseService {
     this.writeIncomeProfile(next);
   }
 
-  addExpense(expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'source'> & { source?: string }): void {
+  addExpense(
+    expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'source'> & { source?: string },
+    options: { id?: string; recurringId?: string; recurringMonth?: string } = {},
+  ): void {
     const draft: ExpenseItem = {
-      id: crypto.randomUUID(),
+      id: options.id ?? crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...expense,
       amount: Number(expense.amount) || 0,
       note: expense.note || '',
       category: expense.category || 'Other',
       source: expense.source?.trim() || 'Other',
+      ...(options.recurringId ? { recurringId: options.recurringId, recurringMonth: options.recurringMonth } : {}),
     };
 
     this.expenses.update((current) => {

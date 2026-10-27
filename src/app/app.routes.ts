@@ -21,6 +21,21 @@ export const routes: Routes = [
 		loadComponent: () => import('./features/income/income.page').then((page) => page.IncomePage),
 		title: 'Income | Ledger',
 	},
+	{
+		path: 'recurring',
+		loadComponent: () => import('./features/recurring/recurring.page').then((page) => page.RecurringPage),
+		title: 'Recurring | Ledger',
+	},
+	{
+		path: 'budgets',
+		loadComponent: () => import('./features/budgets/budgets.page').then((page) => page.BudgetsPage),
+		title: 'Budgets | Ledger',
+	},
+	{
+		path: 'goals',
+		loadComponent: () => import('./features/goals/goals.page').then((page) => page.GoalsPage),
+		title: 'Savings Goals | Ledger',
+	},
 	{ path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 	{ path: '**', redirectTo: 'dashboard' },
 ];

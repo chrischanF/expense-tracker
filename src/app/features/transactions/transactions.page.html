@@ -45,7 +45,10 @@
 <section class="panel transactions-panel">
   <div class="panel-heading activity-heading">
     <div><p class="section-kicker">Your money, in motion</p><h2>All transactions <span class="count-label">{{ filteredExpenses().length }}</span></h2></div>
-    <app-dropdown [options]="rangeOptions" [value]="range()" (valueChange)="range.set($event)" ariaLabel="Filter transactions by date" />
+    <div class="transaction-tools">
+      <button type="button" class="secondary-button export-button" (click)="exportCsv()" aria-label="Export filtered transactions as CSV" title="Export filtered transactions as CSV">↓ CSV</button>
+      <app-dropdown [options]="rangeOptions" [value]="range()" (valueChange)="range.set($event)" ariaLabel="Filter transactions by date" />
+    </div>
   </div>
   <div class="table-wrap">
     <table>

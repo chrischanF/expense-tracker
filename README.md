@@ -53,6 +53,8 @@ ng test
 
 Expenses are saved in browser local storage immediately. When signed in, queued creates, edits, and deletes sync to Firestore when connectivity is available. Guest expenses are kept locally and queued for that account when the user signs in.
 
+Recurring transactions, category budgets, and savings goals are also stored locally first and synced under the signed-in user's `recurring`, `budgets`, and `goals` subcollections. Active recurring transactions generate one ledger expense per month on their configured due day. The dashboard shows category budget progress, Analytics includes category pie and 30-day/year trend charts, and Transactions exports the currently filtered rows as a CSV file.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

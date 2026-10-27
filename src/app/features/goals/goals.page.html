@@ -1,0 +1,63 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Plan ahead</p>
+    <h2>Savings goals</h2>
+    <p>Give future plans a target and track each contribution.</p>
+  </div>
+  <div class="goal-total"><span>{{ formatCurrency(totalSaved()) }} saved</span><strong>of {{ formatCurrency(totalTarget()) }}</strong></div>
+</section>
+
+<section class="goals-layout">
+  <section class="panel goal-editor" aria-labelledby="goal-editor-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">New target</p><h2 id="goal-editor-title">Create a savings goal</h2></div>
+    </div>
+    <form class="planning-form" (ngSubmit)="createGoal()">
+      <label>
+        <span>Goal name</span>
+        <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" maxlength="60" placeholder="Emergency fund" required />
+      </label>
+      <label>
+        <span>Target amount</span>
+        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="targetAmount()" (ngModelChange)="targetAmount.set($event)" name="targetAmount" required /></div>
+      </label>
+      <label>
+        <span>Target date <small>Optional</small></span>
+        <input type="date" [ngModel]="targetDate()" (ngModelChange)="targetDate.set($event)" name="targetDate" />
+      </label>
+      <div class="planning-actions"><button type="submit" class="primary-button">Create goal</button></div>
+    </form>
+  </section>
+
+  <section class="panel goal-list" aria-labelledby="goal-list-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Your future plans</p><h2 id="goal-list-title">Goals</h2></div>
+      <span class="count-label">{{ goals().length }}</span>
+    </div>
+    @if (goals().length) {
+      <div class="goal-items">
+        @for (goal of goals(); track goal.id) {
+          <article class="goal-item">
+            <div class="goal-heading">
+              <div><strong>{{ goal.name }}</strong>@if (goal.targetDate) { <span>Target {{ goal.targetDate | date: 'mediumDate' }}</span> }</div>
+              <button type="button" class="table-action delete-action" (click)="deleteGoal(goal.id)">Remove</button>
+            </div>
+            <div class="goal-amounts"><strong>{{ formatCurrency(goal.savedAmount) }}</strong><span>of {{ formatCurrency(goal.targetAmount) }}</span></div>
+            <div class="goal-track" role="progressbar" [attr.aria-label]="goal.name + ' savings progress'" [attr.aria-valuemin]="0" [attr.aria-valuemax]="100" [attr.aria-valuenow]="progress(goal)">
+              <span [style.width.%]="progress(goal)"></span>
+            </div>
+            <form class="contribution-form" (ngSubmit)="contribute(goal)">
+              <label>
+                <span class="visually-hidden">Contribution amount for {{ goal.name }}</span>
+                <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="contributions()[goal.id] || ''" (ngModelChange)="updateContribution(goal.id, $event)" [name]="'contribution-' + goal.id" placeholder="Add contribution" required /></div>
+              </label>
+              <button type="submit" class="secondary-button">Add funds</button>
+            </form>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="empty-state">No savings goals yet. Create a target to start tracking progress.</p>
+    }
+  </section>
+</section>

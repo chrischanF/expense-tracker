@@ -1,0 +1,119 @@
+.recurring-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.recurring-total {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.recurring-total strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.planning-form {
+  display: grid;
+  gap: 14px;
+}
+
+.planning-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.planning-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: 0;
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.planning-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.planning-form .input-with-prefix {
+  min-height: 42px;
+}
+
+.planning-form .input-with-prefix input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.planning-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.commitment-list {
+  display: grid;
+}
+
+.commitment-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.commitment-row:last-child {
+  border-bottom: 0;
+}
+
+.commitment-row.inactive {
+  opacity: 0.58;
+}
+
+.commitment-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.commitment-copy strong,
+.commitment-amount {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.commitment-copy span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commitment-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+@media (max-width: 850px) {
+  .recurring-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

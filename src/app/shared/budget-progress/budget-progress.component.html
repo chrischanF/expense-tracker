@@ -1,0 +1,13 @@
+<div class="budget-meter" [class.watch]="status === 'watch'" [class.over]="status === 'over'">
+  <div
+    class="budget-track"
+    role="progressbar"
+    [attr.aria-label]="label"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="100"
+    [attr.aria-valuenow]="percent"
+  >
+    <span class="budget-fill" [style.width.%]="percent"></span>
+  </div>
+  <span class="budget-percent">{{ percent }}%</span>
+</div>

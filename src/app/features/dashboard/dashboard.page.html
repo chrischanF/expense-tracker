@@ -30,6 +30,23 @@
   </article>
 </section>
 
+@if (budgetProgress().length) {
+  <section class="panel dashboard-budgets" aria-labelledby="dashboard-budgets-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Monthly guardrails</p><h2 id="dashboard-budgets-title">Category budgets</h2></div>
+      <a class="text-link" routerLink="/budgets">Manage budgets <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="dashboard-budget-list">
+      @for (budget of budgetProgress(); track budget.id) {
+        <div class="dashboard-budget-row">
+          <div class="dashboard-budget-heading"><strong>{{ budget.category }}</strong><span>{{ formatCurrency(budget.spent) }} / {{ formatCurrency(budget.monthlyLimit) }}</span></div>
+          <app-budget-progress [label]="budget.category + ' monthly budget'" [spent]="budget.spent" [limit]="budget.monthlyLimit" />
+        </div>
+      }
+    </div>
+  </section>
+}
+
 <section class="dashboard-grid">
   <article class="panel dashboard-panel">
     <div class="panel-heading">

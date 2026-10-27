@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.budget-meter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--positive);
+}
+
+.budget-track {
+  height: 7px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-soft);
+}
+
+.budget-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  transition: width 180ms ease;
+}
+
+.watch {
+  color: var(--warning);
+}
+
+.over {
+  color: var(--danger);
+}
+
+.budget-percent {
+  min-width: 34px;
+  color: currentColor;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: right;
+}

@@ -8,6 +8,8 @@ export interface ExpenseItem {
   date: string;
   note: string;
   createdAt: string;
+  recurringId?: string;
+  recurringMonth?: string;
 }
 
 export interface AnalyticsPoint {
@@ -99,5 +101,44 @@ export class AnalyticsService {
       dailyBreakdown,
       monthlyBreakdown,
     };
+  }
+
+  dailyTrend(expenses: ExpenseItem[], endDate = new Date(), days = 30): AnalyticsPoint[] {
+    const points = new Map<string, AnalyticsPoint>();
+    for (let offset = days - 1; offset >= 0; offset -= 1) {
+      const date = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - offset, 12);
+      const key = this.dayKey(date);
+      points.set(key, { label: key, total: 0, count: 0 });
+    }
+    for (const expense of expenses) {
+      const key = expense.date.slice(0, 10);
+      const point = points.get(key);
+      if (point) {
+        point.total += Number(expense.amount) || 0;
+        point.count += 1;
+      }
+    }
+    return [...points.values()];
+  }
+
+  monthlyTrend(expenses: ExpenseItem[], endDate = new Date(), months = 12): AnalyticsPoint[] {
+    const points = new Map<string, AnalyticsPoint>();
+    for (let offset = months - 1; offset >= 0; offset -= 1) {
+      const date = new Date(endDate.getFullYear(), endDate.getMonth() - offset, 1, 12);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      points.set(key, { label: key, total: 0, count: 0 });
+    }
+    for (const expense of expenses) {
+      const point = points.get(expense.date.slice(0, 7));
+      if (point) {
+        point.total += Number(expense.amount) || 0;
+        point.count += 1;
+      }
+    }
+    return [...points.values()];
+  }
+
+  private dayKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 }

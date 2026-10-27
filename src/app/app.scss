@@ -708,6 +708,12 @@ tbody tr:hover { background: var(--surface-soft); }
 }
 
 .dashboard-panel { min-width: 0; padding: 21px; }
+.dashboard-budgets { margin-top: 16px; }
+.dashboard-budget-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 22px; }
+.dashboard-budget-row { display: grid; gap: 8px; min-width: 0; }
+.dashboard-budget-heading { display: flex; justify-content: space-between; gap: 10px; }
+.dashboard-budget-heading strong { color: var(--text); font-size: 0.74rem; }
+.dashboard-budget-heading span { color: var(--muted); font-size: 0.68rem; text-align: right; }
 .dashboard-panel .panel-heading { margin-bottom: 12px; }
 .text-link { color: var(--accent-strong); font-size: 0.74rem; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .text-link:hover { text-decoration: underline; }
@@ -732,6 +738,8 @@ tbody tr:hover { background: var(--surface-soft); }
 .icon-link:hover { border-color: var(--accent); color: var(--accent-strong); }
 
 .transactions-panel { margin-top: 0; }
+.transaction-tools { display: flex; align-items: center; gap: 8px; }
+.export-button { min-height: 36px; white-space: nowrap; }
 .transaction-form-panel { margin-bottom: 16px; }
 .source-label { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
 .source-filter { display: grid; min-width: 175px; gap: 6px; color: var(--muted); font-size: 0.68rem; font-weight: 600; }

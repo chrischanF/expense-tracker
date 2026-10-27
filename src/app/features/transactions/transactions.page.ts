@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dr
 })
 export class TransactionsPage {
   private readonly expenseService = inject(ExpenseService);
+  private readonly document = inject(DOCUMENT);
   readonly preferences = inject(AppPreferencesService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -53,6 +54,27 @@ export class TransactionsPage {
 
   formatCurrency(value: number): string {
     return this.preferences.formatCurrency(value);
+  }
+
+  exportCsv(): void {
+    const columns = ['Date', 'Category', 'Source', 'Note', 'Amount', 'Currency'];
+    const rows = this.filteredExpenses().map((expense) => [
+      expense.date.slice(0, 10),
+      expense.category,
+      expense.source,
+      expense.note,
+      String(expense.amount),
+      this.preferences.currency(),
+    ]);
+    const csv = [columns, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
+      .join('\r\n');
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }));
+    const link = this.document.createElement('a');
+    link.href = url;
+    link.download = `ledger-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   openNewExpense(): void {

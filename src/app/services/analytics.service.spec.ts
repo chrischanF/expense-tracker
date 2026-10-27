@@ -33,4 +33,24 @@ describe('AnalyticsService', () => {
     expect(service.filterBySource(expenses, 'Other').map((expense) => expense.id)).toEqual(['3']);
     expect(service.filterBySource(expenses, 'all')).toEqual(expenses);
   });
+
+  it('fills missing dates in daily trend data', () => {
+    const service = new AnalyticsService();
+    const expenses: ExpenseItem[] = [
+      { id: '1', amount: 25, category: 'Food', source: 'Cash', date: '2026-10-29T12:00:00.000Z', note: '', createdAt: '' },
+    ];
+    const trend = service.dailyTrend(expenses, new Date(2026, 9, 30, 12), 3);
+
+    expect(trend.map((point) => point.label)).toEqual(['2026-10-28', '2026-10-29', '2026-10-30']);
+    expect(trend.map((point) => point.total)).toEqual([0, 25, 0]);
+  });
+
+  it('returns a complete twelve-month trend with zero-value months', () => {
+    const service = new AnalyticsService();
+    const trend = service.monthlyTrend([], new Date(2026, 9, 30, 12));
+
+    expect(trend).toHaveLength(12);
+    expect(trend[0].label).toBe('2025-11');
+    expect(trend[11].label).toBe('2026-10');
+  });
 });

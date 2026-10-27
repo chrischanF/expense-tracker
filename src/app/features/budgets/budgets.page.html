@@ -1,0 +1,52 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Monthly guardrails</p>
+    <h2>Category budgets</h2>
+    <p>Set a limit for each category and track this month’s pace.</p>
+  </div>
+</section>
+
+<section class="budget-layout">
+  <section class="panel budget-editor" aria-labelledby="budget-editor-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Spending cap</p><h2 id="budget-editor-title">Set a monthly budget</h2></div>
+    </div>
+    <form class="planning-form" (ngSubmit)="saveBudget()">
+      <label>
+        <span>Category</span>
+        <app-dropdown [options]="categories" [value]="selectedCategory()" (valueChange)="selectedCategory.set($event)" ariaLabel="Budget category" />
+      </label>
+      <label>
+        <span>Monthly limit</span>
+        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="monthlyLimit()" (ngModelChange)="monthlyLimit.set($event)" name="monthlyLimit" required /></div>
+      </label>
+      <div class="planning-actions"><button type="submit" class="primary-button">Save budget</button></div>
+    </form>
+  </section>
+
+  <section class="panel budget-list" aria-labelledby="budget-list-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Resets each month</p><h2 id="budget-list-title">Your category limits</h2></div>
+      <span class="count-label">{{ budgets().length }}</span>
+    </div>
+    @if (budgets().length) {
+      <div class="budget-items">
+        @for (budget of budgets(); track budget.id) {
+          <article class="budget-item">
+            <div class="budget-item-heading">
+              <strong>{{ budget.category }}</strong>
+              <span>{{ formatCurrency(budget.spent) }} of {{ formatCurrency(budget.monthlyLimit) }}</span>
+            </div>
+            <app-budget-progress [label]="budget.category + ' monthly budget'" [spent]="budget.spent" [limit]="budget.monthlyLimit" />
+            <div class="budget-item-actions">
+              <button type="button" class="table-action edit-action" (click)="editBudget(budget)">Edit</button>
+              <button type="button" class="table-action delete-action" (click)="deleteBudget(budget.id)">Remove</button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="empty-state">No category budgets yet. Add a limit to start tracking progress.</p>
+    }
+  </section>
+</section>

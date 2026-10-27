@@ -1,0 +1,69 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Monthly commitments</p>
+    <h2>Recurring transactions</h2>
+    <p>Keep fixed bills in your ledger automatically.</p>
+  </div>
+  <div class="recurring-total"><span>Active monthly total</span><strong>{{ formatCurrency(activeTotal()) }}</strong></div>
+</section>
+
+<section class="recurring-layout">
+  <section class="panel recurring-editor" aria-labelledby="recurring-editor-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Fixed expense</p><h2 id="recurring-editor-title">{{ editingId() ? 'Edit commitment' : 'Add commitment' }}</h2></div>
+    </div>
+    <form class="planning-form" (ngSubmit)="save()">
+      <label>
+        <span>Name</span>
+        <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" maxlength="60" placeholder="Rent or streaming service" required />
+      </label>
+      <label>
+        <span>Amount per month</span>
+        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" required /></div>
+      </label>
+      <label>
+        <span>Category</span>
+        <app-dropdown [options]="categories" [value]="category()" (valueChange)="category.set($event)" ariaLabel="Recurring expense category" />
+      </label>
+      <label>
+        <span>Payment source</span>
+        <app-dropdown [options]="sources" [value]="source()" (valueChange)="source.set($event)" ariaLabel="Recurring payment source" />
+      </label>
+      <label>
+        <span>Due day each month</span>
+        <input type="number" min="1" max="31" step="1" [ngModel]="dueDay()" (ngModelChange)="dueDay.set($event)" name="dueDay" required />
+      </label>
+      <div class="planning-actions">
+        @if (editingId()) { <button type="button" class="secondary-button" (click)="resetForm()">Cancel</button> }
+        <button type="submit" class="primary-button">{{ editingId() ? 'Save changes' : 'Add monthly expense' }}</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel recurring-list" aria-labelledby="recurring-list-title">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Expected each month</p><h2 id="recurring-list-title">Your commitments</h2></div>
+      <span class="count-label">{{ items().length }}</span>
+    </div>
+    @if (items().length) {
+      <div class="commitment-list">
+        @for (item of items(); track item.id) {
+          <article class="commitment-row" [class.inactive]="!item.active">
+            <div class="commitment-copy">
+              <strong>{{ item.name }}</strong>
+              <span>{{ item.category }} · Day {{ item.dueDay }} · {{ item.source }}</span>
+            </div>
+            <strong class="commitment-amount">{{ formatCurrency(item.amount) }}</strong>
+            <div class="commitment-actions">
+              <button type="button" class="table-action edit-action" (click)="toggle(item)">{{ item.active ? 'Pause' : 'Resume' }}</button>
+              <button type="button" class="table-action edit-action" (click)="edit(item)">Edit</button>
+              <button type="button" class="table-action delete-action" (click)="remove(item.id)">Delete</button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="empty-state">No monthly commitments added yet.</p>
+    }
+  </section>
+</section>

@@ -32,13 +32,16 @@
   <article class="panel analytics-panel">
     <div class="panel-heading"><div><p class="section-kicker">Where it goes</p><h2>Spending by category</h2></div></div>
     <div class="chart-wrap analytics-chart">
-      <canvas baseChart [data]="categoryChartData()" [options]="categoryChartOptions()" type="doughnut" aria-label="Spending by category"></canvas>
+      <canvas baseChart [data]="categoryChartData()" [options]="categoryChartOptions()" type="pie" aria-label="Spending by category"></canvas>
     </div>
   </article>
   <article class="panel analytics-panel">
-    <div class="panel-heading"><div><p class="section-kicker">Over time</p><h2>Monthly spending</h2></div></div>
+    <div class="panel-heading">
+      <div><p class="section-kicker">Over time</p><h2>{{ trendRange() === '30d' ? 'Daily spending' : 'Monthly spending' }}</h2></div>
+      <app-dropdown [options]="trendRangeOptions" [value]="trendRange()" (valueChange)="trendRange.set($event)" ariaLabel="Spending trend period" />
+    </div>
     <div class="chart-wrap analytics-chart">
-      <canvas baseChart [data]="monthlyChartData()" [options]="monthlyChartOptions()" type="bar" aria-label="Monthly spending"></canvas>
+      <canvas baseChart [data]="trendChartData()" [options]="trendChartOptions()" type="line" [attr.aria-label]="trendRange() === '30d' ? 'Spending over the last 30 days' : 'Spending over the last 12 months'"></canvas>
     </div>
   </article>
 </section>

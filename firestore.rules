@@ -6,5 +6,17 @@ service cloud.firestore {
       // and the path matches their own user ID.
       allow read, write: if request.auth != null && userId == request.auth.uid;
     }
+
+    match /users/{userId}/recurring/{recurringId} {
+      allow read, write: if request.auth != null && userId == request.auth.uid;
+    }
+
+    match /users/{userId}/budgets/{budgetId} {
+      allow read, write: if request.auth != null && userId == request.auth.uid;
+    }
+
+    match /users/{userId}/goals/{goalId} {
+      allow read, write: if request.auth != null && userId == request.auth.uid;
+    }
   }
 }

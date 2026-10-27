@@ -4,10 +4,12 @@ import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { PlanningService } from '../../services/planning.service';
+import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [BudgetProgressComponent, DatePipe, DecimalPipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.page.html',
 })
@@ -15,6 +17,7 @@ export class DashboardPage {
   private readonly expensesService = inject(ExpenseService);
   private readonly analytics = inject(AnalyticsService);
   private readonly preferences = inject(AppPreferencesService);
+  private readonly planning = inject(PlanningService);
 
   readonly expenses = this.expensesService.expenses;
   readonly incomeProfile = this.expensesService.incomeProfile;
@@ -37,6 +40,14 @@ export class DashboardPage {
     if (usage >= 90) return 'critical';
     if (usage >= 70) return 'watch';
     return 'healthy';
+  });
+  readonly budgetProgress = computed(() => {
+    const expenses = this.expensesService.getExpensesByDateRange('month');
+    return this.planning.budgets().map((budget) => ({
+      ...budget,
+      spent: expenses.filter((expense) => expense.category === budget.category)
+        .reduce((total, expense) => total + expense.amount, 0),
+    }));
   });
 
   formatCurrency(value: number): string {

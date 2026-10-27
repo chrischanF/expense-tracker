@@ -5,6 +5,7 @@ import { AuthService } from './services/auth.service';
 import { ExpenseService } from './services/expense.service';
 import { FirebaseService } from './services/firebase.service';
 import { AppPreferencesService } from './services/app-preferences.service';
+import { PlanningService } from './services/planning.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class App {
   private readonly authService = inject(AuthService);
   private readonly firebaseService = inject(FirebaseService);
   private readonly expenseService = inject(ExpenseService);
+  private readonly planningService = inject(PlanningService);
   readonly preferences = inject(AppPreferencesService);
   readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({
     value: currency,
