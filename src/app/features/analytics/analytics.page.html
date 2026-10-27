@@ -1,0 +1,47 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Patterns and totals</p>
+    <h2>Analytics</h2>
+    <p>Understand your spending across categories and months.</p>
+  </div>
+  <label class="source-filter">
+    <span>Payment source</span>
+    <select [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)" aria-label="Filter analytics by payment source">
+      <option value="all">All sources</option>
+      @for (source of sourceOptions(); track source) { <option [value]="source">{{ source }}</option> }
+    </select>
+  </label>
+</section>
+
+<section class="stats-grid analytics-stats" aria-label="Spending highlights">
+  <article class="stat-card">
+    <p>Total recorded</p>
+    <strong>{{ formatCurrency(totalSpent()) }}</strong>
+    <span>Across all expenses</span>
+  </article>
+  <article class="stat-card">
+    <p>Highest spend day</p>
+    <strong>{{ peakDay().label }}</strong>
+    <span>{{ formatCurrency(peakDay().total) }} · {{ peakDay().count }} transactions</span>
+  </article>
+  <article class="stat-card">
+    <p>Highest spend month</p>
+    <strong>{{ peakMonth().label }}</strong>
+    <span>{{ formatCurrency(peakMonth().total) }} · {{ peakMonth().count }} transactions</span>
+  </article>
+</section>
+
+<section class="analytics-grid">
+  <article class="panel analytics-panel">
+    <div class="panel-heading"><div><p class="section-kicker">Where it goes</p><h2>Spending by category</h2></div></div>
+    <div class="chart-wrap analytics-chart">
+      <canvas baseChart [data]="categoryChartData()" [options]="categoryChartOptions()" type="doughnut" aria-label="Spending by category"></canvas>
+    </div>
+  </article>
+  <article class="panel analytics-panel">
+    <div class="panel-heading"><div><p class="section-kicker">Over time</p><h2>Monthly spending</h2></div></div>
+    <div class="chart-wrap analytics-chart">
+      <canvas baseChart [data]="monthlyChartData()" [options]="monthlyChartOptions()" type="bar" aria-label="Monthly spending"></canvas>
+    </div>
+  </article>
+</section>

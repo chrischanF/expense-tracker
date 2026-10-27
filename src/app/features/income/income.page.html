@@ -1,0 +1,46 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Your baseline</p>
+    <h2>Income</h2>
+    <p>Set your pay amount, cadence, and next payday.</p>
+  </div>
+</section>
+
+<div class="income-page-grid">
+  <section class="panel income-editor">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Recurring income</p><h2>Pay schedule</h2></div>
+    </div>
+    <form class="income-form" (ngSubmit)="saveIncome()">
+      <label>
+        <span>Amount per payday</span>
+        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event); saved.set(false)" name="amount" required /></div>
+      </label>
+      <label>
+        <span>Pay frequency</span>
+        <select [ngModel]="frequency()" (ngModelChange)="frequency.set($event); saved.set(false)" name="frequency">
+          @for (option of frequencyOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
+        </select>
+      </label>
+      <label>
+        <span>Next payday</span>
+        <input type="date" [ngModel]="nextPayDate()" (ngModelChange)="nextPayDate.set($event); saved.set(false)" name="nextPayDate" required />
+      </label>
+      <p class="field-hint">“Every two weeks” and “Twice a month” are separate schedules. The monthly baseline is normalized across a full year.</p>
+      <div class="income-submit-row">
+        @if (saved()) { <span class="saved-message" role="status">Income schedule saved</span> }
+        <button type="submit" class="primary-button">Save schedule</button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="income-projection" aria-label="Monthly income projection">
+    <p class="section-kicker">Budget baseline</p>
+    <p class="projection-amount">{{ formatCurrency(monthlyEquivalent()) }}</p>
+    <p class="projection-caption">Estimated monthly income</p>
+    <div class="projection-breakdown">
+      <span>{{ frequencyDetail() }}</span>
+      <strong>{{ formatCurrency(payAmount()) }} per payday</strong>
+    </div>
+  </aside>
+</div>

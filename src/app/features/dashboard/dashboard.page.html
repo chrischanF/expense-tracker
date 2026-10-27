@@ -1,0 +1,78 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Personal finances</p>
+    <h2>Overview</h2>
+    <p>Track your spending and see what is available this month.</p>
+  </div>
+  <a class="primary-button" routerLink="/transactions" [queryParams]="{ action: 'add' }"><span aria-hidden="true">＋</span> Add expense</a>
+</section>
+
+<section class="stats-grid" aria-label="Monthly summary">
+  <article class="stat-card income-stat">
+    <p>Monthly income</p>
+    <strong>{{ formatCurrency(monthlyIncome()) }}</strong>
+    <span>{{ incomeProfile().amount | number: '1.0-2' }} paid {{ frequencyLabel() }}</span>
+  </article>
+  <article class="stat-card">
+    <p>Spent this month</p>
+    <strong>{{ formatCurrency(summary().total) }}</strong>
+    <span>{{ incomeUsageRatio().toFixed(0) }}% of monthly income</span>
+  </article>
+  <article class="stat-card">
+    <p>Remaining</p>
+    <strong class="remaining-value">{{ formatCurrency(remainingBalance()) }}</strong>
+    <span>After recorded expenses</span>
+  </article>
+  <article class="stat-card">
+    <p>Next payday</p>
+    <strong class="date-stat">{{ incomeProfile().nextPayDate | date: 'MMM d' }}</strong>
+    <span>Based on your income schedule</span>
+  </article>
+</section>
+
+<section class="dashboard-grid">
+  <article class="panel dashboard-panel">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Your money, in motion</p><h2>Recent activity</h2></div>
+      <a class="text-link" routerLink="/transactions">All transactions <span aria-hidden="true">→</span></a>
+    </div>
+    @if (recentExpenses().length) {
+      <div class="recent-list">
+        @for (expense of recentExpenses(); track expense.id) {
+          <div class="recent-item">
+            <span class="category-mark" aria-hidden="true">{{ expense.category.charAt(0) }}</span>
+            <div class="recent-description">
+              <strong>{{ expense.category }}</strong>
+              <span>{{ expense.note || 'Expense' }} · {{ expense.date | date: 'mediumDate' }}</span>
+            </div>
+            <strong class="recent-amount">−{{ formatCurrency(expense.amount) }}</strong>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-panel">
+        <p>No expenses yet</p>
+        <a class="text-link" routerLink="/transactions" [queryParams]="{ action: 'add' }">Add your first expense <span aria-hidden="true">→</span></a>
+      </div>
+    }
+  </article>
+
+  <article class="panel dashboard-panel income-summary-panel">
+    <div class="panel-heading">
+      <div><p class="section-kicker">Your baseline</p><h2>Income schedule</h2></div>
+      <a class="icon-link" routerLink="/income" aria-label="Edit income schedule" title="Edit income schedule">↗</a>
+    </div>
+    <div class="income-summary-amount">{{ formatCurrency(monthlyIncome()) }}<span> / month</span></div>
+    <p class="income-summary-copy">
+      {{ formatCurrency(incomeProfile().amount) }}
+      @switch (incomeProfile().frequency) {
+        @case ('weekly') { paid weekly }
+        @case ('biweekly') { paid every two weeks }
+        @case ('twice-monthly') { paid twice a month }
+        @case ('monthly') { paid monthly }
+      }
+    </p>
+    <div class="schedule-date"><span>Next payday</span><strong>{{ incomeProfile().nextPayDate | date: 'fullDate' }}</strong></div>
+    <a class="secondary-button schedule-link" routerLink="/income">Manage income</a>
+  </article>
+</section>

@@ -1,7 +1,10 @@
+import { Injectable } from '@angular/core';
+
 export interface ExpenseItem {
   id: string;
   amount: number;
   category: string;
+  source: string;
   date: string;
   note: string;
   createdAt: string;
@@ -22,7 +25,16 @@ export interface AnalyticsSummary {
   monthlyBreakdown: AnalyticsPoint[];
 }
 
+@Injectable({ providedIn: 'root' })
 export class AnalyticsService {
+  filterBySource(expenses: ExpenseItem[], source: string): ExpenseItem[] {
+    if (source === 'all') {
+      return expenses;
+    }
+
+    return expenses.filter((expense) => (expense.source || 'Other') === source);
+  }
+
   summarize(expenses: ExpenseItem[]): AnalyticsSummary {
     const totalsByDay = new Map<string, number>();
     const totalsByMonth = new Map<string, number>();
