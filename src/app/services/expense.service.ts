@@ -298,7 +298,7 @@ export class ExpenseService {
       this.syncStatus.set('Synced');
     } catch (e){
       console.log('Sync Error: ', e)
-      this.syncStatus.set('Sync failed: Offline or Firebase unavailable; changes are saved locally');
+      this.syncStatus.set('Sync failed: Firebase unavailable; changes are saved locally');
       this.scheduleSyncRetry();
     } finally {
       this.syncInProgress = false;
