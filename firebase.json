@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "dist/expense-tracker/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
