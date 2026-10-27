@@ -15,16 +15,19 @@ import type { PendingExpenseChange } from '../types/expense.types';
 
 @Injectable({ providedIn: 'root' })
 export class ExpenseService {
-  private readonly incomeStorageKey = 'expense-tracker.demo-income';
+  private readonly guestIncomeStorageKey = 'expense-tracker.demo-income';
   private readonly guestStorageKey = 'expense-tracker.demo-expenses';
   private readonly pendingChanges = new Map<string, PendingExpenseChange>();
   private userId: string | null = null;
   private unsubscribeExpenses: (() => void) | null = null;
+  private unsubscribeIncome: (() => void) | null = null;
   private syncInProgress = false;
+  private incomeSyncInProgress = false;
+  private incomeNeedsSync = false;
   private syncRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly expenses = signal<ExpenseItem[]>(this.readExpenses(this.guestStorageKey));
-  readonly incomeProfile = signal<IncomeProfile>(this.readIncomeProfile());
+  readonly incomeProfile = signal<IncomeProfile>(this.readIncomeProfile(this.incomeStorageKey(null)));
   readonly monthlyIncome = computed(() => toMonthlyIncome(this.incomeProfile()));
   readonly syncStatus = signal('Local only');
   readonly isLoading = signal(false);
@@ -38,6 +41,7 @@ export class ExpenseService {
     effect(() => {
       if (this.firebase.isOnline()) {
         void this.syncPendingChanges();
+        void this.syncIncomeProfile();
       }
     });
   }
@@ -51,7 +55,11 @@ export class ExpenseService {
       nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate),
     };
     this.incomeProfile.set(next);
-    this.writeIncomeProfile(next);
+    this.writeIncomeProfile(next, this.incomeStorageKey());
+    if (this.userId) {
+      this.incomeNeedsSync = true;
+      void this.syncIncomeProfile();
+    }
   }
 
   addExpense(
@@ -176,12 +184,17 @@ export class ExpenseService {
     }
 
     this.unsubscribeExpenses?.();
+    this.unsubscribeIncome?.();
     this.unsubscribeExpenses = null;
+    this.unsubscribeIncome = null;
     if (this.syncRetryTimer) {
       clearTimeout(this.syncRetryTimer);
       this.syncRetryTimer = null;
     }
     this.userId = userId;
+    this.incomeSyncInProgress = false;
+    this.incomeNeedsSync = false;
+    this.incomeProfile.set(this.readIncomeProfile(this.incomeStorageKey()));
     this.pendingChanges.clear();
     this.isLoading.set(false);
     this.isSaving.set(false);
@@ -201,6 +214,7 @@ export class ExpenseService {
         }
       }
       this.listenToCloudExpenses();
+      this.listenToCloudIncome();
       void this.syncPendingChanges();
     } else {
       this.expenses.set(this.readExpenses(this.guestStorageKey));
@@ -347,6 +361,7 @@ export class ExpenseService {
     this.syncRetryTimer = setTimeout(() => {
       this.syncRetryTimer = null;
       void this.syncPendingChanges();
+      void this.syncIncomeProfile();
     }, 15_000);
   }
 
@@ -358,52 +373,25 @@ export class ExpenseService {
     }
   }
 
-  private readIncomeProfile(): IncomeProfile {
+  private incomeStorageKey(userId = this.userId): string {
+    return userId ? `expense-tracker.${userId}.income` : this.guestIncomeStorageKey;
+  }
+
+  private readIncomeProfile(key: string): IncomeProfile {
     if (typeof localStorage === 'undefined') {
       return this.defaultIncomeProfile();
     }
 
     try {
-      const raw = localStorage.getItem(this.incomeStorageKey);
+      const raw = localStorage.getItem(key);
       if (!raw) {
         return this.defaultIncomeProfile();
       }
 
-      const stored: unknown = JSON.parse(raw);
-      if (typeof stored === 'number') {
-        return {
-          amount: stored,
-          payAmounts: [stored],
-          frequency: 'monthly',
-          nextPayDate: this.defaultIncomeProfile().nextPayDate,
-        };
-      }
-
-      if (typeof stored === 'object' && stored !== null && 'amount' in stored) {
-        const profile = stored as Partial<IncomeProfile>;
-        const frequency = ['weekly', 'biweekly', 'twice-monthly', 'monthly'].includes(String(profile.frequency))
-          ? (profile.frequency as IncomeProfile['frequency'])
-          : 'monthly';
-        const candidate: IncomeProfile = {
-          amount: Number(profile.amount) || 0,
-          payAmounts: Array.isArray(profile.payAmounts)
-            ? profile.payAmounts
-                .map((amount) => Number(amount))
-                .filter((amount) => Number.isFinite(amount) && amount >= 0)
-            : undefined,
-          frequency,
-          nextPayDate: normalizeDateToIsoUtc(
-            typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
-          ),
-        };
-        const payAmounts = payAmountsForProfile(candidate);
-        return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };
-      }
+      return this.normalizeIncomeProfile(JSON.parse(raw)) ?? this.defaultIncomeProfile();
     } catch {
       return this.defaultIncomeProfile();
     }
-
-    return this.defaultIncomeProfile();
   }
 
   private defaultIncomeProfile(): IncomeProfile {
@@ -415,14 +403,132 @@ export class ExpenseService {
     };
   }
 
-  private writeIncomeProfile(profile: IncomeProfile): void {
+  private normalizeIncomeProfile(value: unknown): IncomeProfile | null {
+    if (typeof value !== 'object' || value === null) return null;
+    const profile = value as Partial<IncomeProfile>;
+    const frequencies: IncomeProfile['frequency'][] = ['weekly', 'biweekly', 'twice-monthly', 'monthly'];
+    if (
+      typeof profile.amount !== 'number' ||
+      !Number.isFinite(profile.amount) ||
+      profile.amount < 0 ||
+      !frequencies.includes(profile.frequency as IncomeProfile['frequency']) ||
+      typeof profile.nextPayDate !== 'string' ||
+      (profile.payAmounts !== undefined &&
+        (!Array.isArray(profile.payAmounts) ||
+          profile.payAmounts.some((amount) => typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0)))
+    ) {
+      return null;
+    }
+
+    const candidate: IncomeProfile = {
+      amount: profile.amount,
+      payAmounts: profile.payAmounts,
+      frequency: profile.frequency as IncomeProfile['frequency'],
+      nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate),
+    };
+    const payAmounts = payAmountsForProfile(candidate);
+    return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };
+  }
+
+  private listenToCloudIncome(): void {
+    const userId = this.userId;
+    if (!userId || !this.firebase.isConfigured) return;
+
+    void this.firebase
+      .getFirestore()
+      .then(async (firestore) => {
+        if (!firestore || this.userId !== userId) return;
+        const { doc, onSnapshot } = await import('firebase/firestore');
+        this.unsubscribeIncome = onSnapshot(
+          doc(firestore, 'users', userId, 'income', 'profile'),
+          { includeMetadataChanges: true },
+          (snapshot) => {
+            if (this.userId !== userId) return;
+            if (snapshot.exists()) {
+              if (this.incomeNeedsSync) return;
+              const profile = this.normalizeIncomeProfile(snapshot.data());
+              if (!profile) return;
+              this.incomeProfile.set(profile);
+              this.writeIncomeProfile(profile, this.incomeStorageKey(userId));
+              return;
+            }
+            if (!snapshot.metadata.fromCache) {
+              const accountKey = this.incomeStorageKey(userId);
+              const profile =
+                this.readCurrentIncomeProfile(accountKey) ?? this.readCurrentIncomeProfile(this.guestIncomeStorageKey);
+              if (profile) {
+                this.incomeProfile.set(profile);
+                this.writeIncomeProfile(profile, accountKey);
+                this.incomeNeedsSync = true;
+                void this.syncIncomeProfile();
+              }
+            }
+          },
+          () => this.syncStatus.set('Income sync failed; the saved profile remains on this device.'),
+        );
+      })
+      .catch(() => this.syncStatus.set('Income sync failed; the saved profile remains on this device.'));
+  }
+
+  private readCurrentIncomeProfile(key: string): IncomeProfile | null {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? this.normalizeIncomeProfile(JSON.parse(raw)) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async syncIncomeProfile(): Promise<void> {
+    const userId = this.userId;
+    if (
+      !userId ||
+      !this.incomeNeedsSync ||
+      this.incomeSyncInProgress ||
+      !this.firebase.isConfigured ||
+      !this.firebase.isOnline()
+    )
+      return;
+
+    const profile = this.incomeProfile();
+    this.incomeSyncInProgress = true;
+    let synced = false;
+    try {
+      const firestore = await this.firebase.getFirestore();
+      if (!firestore || this.userId !== userId) return;
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(firestore, 'users', userId, 'income', 'profile'), {
+        ...profile,
+        monthlyIncome: toMonthlyIncome(profile),
+      });
+      if (this.userId === userId && this.incomeProfile() === profile) {
+        this.incomeNeedsSync = false;
+      }
+      synced = true;
+    } catch (error) {
+      console.error('Income Firestore sync failed:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      this.syncStatus.set(`Income sync failed: ${message}`);
+      this.scheduleSyncRetry();
+    } finally {
+      this.incomeSyncInProgress = false;
+      if (synced && this.userId === userId && this.incomeNeedsSync) {
+        void this.syncIncomeProfile();
+      } else if (synced && this.userId === userId) {
+        this.syncStatus.set('Income synced');
+      }
+    }
+  }
+
+  private writeIncomeProfile(profile: IncomeProfile, key: string): void {
     if (typeof localStorage === 'undefined') {
       return;
     }
 
     try {
       localStorage.setItem(
-        this.incomeStorageKey,
+        key,
         JSON.stringify({ ...profile, nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate) }),
       );
     } catch {

@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:webapp": "node dist/webapp/server/server.mjs",
-    "deploy": "ng build --configuration production && firebase deploy --only hosting"
+    "deploy": "ng build --configuration production && firebase deploy --only hosting,firestore:rules"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
