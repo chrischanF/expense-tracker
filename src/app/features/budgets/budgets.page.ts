@@ -3,16 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
+import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { EXPENSE_CATEGORIES } from '../../services/planning.model';
 import type { CategoryBudget } from '../../types/planning.types';
 import { PlanningService } from '../../services/planning.service';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import type { DropdownOption } from '../../types/dropdown.types';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 
 @Component({
   selector: 'app-budgets-page',
-  imports: [BudgetProgressComponent, DropdownComponent, FormsModule],
+  imports: [BudgetProgressComponent, DropdownComponent, FormsModule, LoaderComponent],
   templateUrl: './budgets.page.html',
   styleUrl: './budgets.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,12 +22,23 @@ import type { DropdownOption } from '../../types/dropdown.types';
 export class BudgetsPage {
   private readonly planning = inject(PlanningService);
   private readonly expenses = inject(ExpenseService);
+  private readonly payPeriodFilter = inject(PayPeriodFilterService);
   readonly preferences = inject(AppPreferencesService);
   private readonly exchangeRates = inject(ExchangeRateService);
+  readonly firestoreBusy = computed(
+    () =>
+      this.expenses.isLoading() || this.expenses.isSaving() || this.planning.isLoading() || this.planning.isSaving(),
+  );
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenses.isLoading() || this.planning.isLoading() ? 'Loading your budgets…' : 'Syncing your changes…',
+  );
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));
   readonly budgets = computed(() => {
-    const expenses = this.expenses
-      .getExpensesByDateRange('month')
+    const expenses = (
+      this.payPeriodFilter.selectedPeriod()
+        ? this.payPeriodFilter.filterExpenses(this.expenses.expenses())
+        : this.expenses.getExpensesByDateRange('month')
+    )
       .map((expense) => ({
         expense,
         amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),

@@ -1,63 +1,167 @@
+<app-loader
+  [active]="firestoreBusy()"
+  [message]="firestoreLoaderMessage()"
+/>
 <section class="page-intro">
   <div>
     <p class="section-kicker">Monthly commitments</p>
     <h2>Recurring transactions</h2>
     <p>Keep fixed bills in your ledger automatically.</p>
   </div>
-  <div class="recurring-total"><span>Active monthly total · {{ preferences.currency() }}</span><strong>{{ formatCurrency(activeTotal()) }}</strong></div>
+  <div class="recurring-total">
+    <span>Active monthly total · {{ preferences.currency() }}</span
+    ><strong>{{ formatCurrency(activeTotal()) }}</strong>
+  </div>
 </section>
 
 <section class="recurring-layout">
-  <section class="panel recurring-editor" aria-labelledby="recurring-editor-title">
+  <section
+    class="panel recurring-editor"
+    aria-labelledby="recurring-editor-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Fixed expense</p><h2 id="recurring-editor-title">{{ editingId() ? 'Edit commitment' : 'Add commitment' }}</h2></div>
+      <div>
+        <p class="section-kicker">Fixed expense</p>
+        <h2 id="recurring-editor-title">{{ editingId() ? 'Edit commitment' : 'Add commitment' }}</h2>
+      </div>
     </div>
-    <form class="planning-form" (ngSubmit)="save()">
+    <form
+      class="planning-form"
+      (ngSubmit)="save()"
+    >
       <label>
         <span>Name</span>
-        <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" maxlength="60" placeholder="Rent or streaming service" required />
+        <input
+          type="text"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          name="name"
+          maxlength="60"
+          placeholder="Rent or streaming service"
+          required
+        />
       </label>
       <label>
         <span>Amount per month</span>
-        <div class="input-with-prefix"><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" required /><app-dropdown [options]="currencyOptions()" [value]="currency()" (valueChange)="currency.set($event)" ariaLabel="Recurring expense currency" [compact]="true" /></div>
+        <div class="input-with-prefix">
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [ngModel]="amount()"
+            (ngModelChange)="amount.set($event)"
+            name="amount"
+            required
+          /><app-dropdown
+            [options]="currencyOptions()"
+            [value]="currency()"
+            (valueChange)="currency.set($event)"
+            ariaLabel="Recurring expense currency"
+            [compact]="true"
+          />
+        </div>
       </label>
       <label>
         <span>Category</span>
-        <app-dropdown [options]="categories" [value]="category()" (valueChange)="category.set($event)" ariaLabel="Recurring expense category" />
+        <app-dropdown
+          [options]="categories"
+          [value]="category()"
+          (valueChange)="category.set($event)"
+          ariaLabel="Recurring expense category"
+        />
       </label>
       <label>
         <span>Payment source</span>
-        <app-dropdown [options]="sources" [value]="source()" (valueChange)="source.set($event)" ariaLabel="Recurring payment source" />
+        <app-dropdown
+          [options]="sources"
+          [value]="source()"
+          (valueChange)="source.set($event)"
+          ariaLabel="Recurring payment source"
+        />
       </label>
       <label>
         <span>Due day each month</span>
-        <input type="number" min="1" max="31" step="1" [ngModel]="dueDay()" (ngModelChange)="dueDay.set($event)" name="dueDay" required />
+        <input
+          type="number"
+          min="1"
+          max="31"
+          step="1"
+          [ngModel]="dueDay()"
+          (ngModelChange)="dueDay.set($event)"
+          name="dueDay"
+          required
+        />
       </label>
       <div class="planning-actions">
-        @if (editingId()) { <button type="button" class="secondary-button" (click)="resetForm()">Cancel</button> }
-        <button type="submit" class="primary-button">{{ editingId() ? 'Save changes' : 'Add monthly expense' }}</button>
+        @if (editingId()) {
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="resetForm()"
+          >
+            Cancel
+          </button>
+        }
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          {{ editingId() ? 'Save changes' : 'Add monthly expense' }}
+        </button>
       </div>
     </form>
   </section>
 
-  <section class="panel recurring-list" aria-labelledby="recurring-list-title">
+  <section
+    class="panel recurring-list"
+    aria-labelledby="recurring-list-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Expected each month</p><h2 id="recurring-list-title">Your commitments</h2></div>
+      <div>
+        <p class="section-kicker">Expected each month</p>
+        <h2 id="recurring-list-title">Your commitments</h2>
+      </div>
       <span class="count-label">{{ items().length }}</span>
     </div>
     @if (items().length) {
       <div class="commitment-list">
         @for (item of items(); track item.id) {
-          <article class="commitment-row" [class.inactive]="!item.active">
+          <article
+            class="commitment-row"
+            [class.inactive]="!item.active"
+          >
             <div class="commitment-copy">
               <strong>{{ item.name }}</strong>
-              <span>{{ item.category }} · Day {{ item.dueDay }} · {{ item.source }} · {{ item.currency || preferences.currency() }}</span>
+              <span
+                >{{ item.category }} · Day {{ item.dueDay }} · {{ item.source }} ·
+                {{ item.currency || preferences.currency() }}</span
+              >
             </div>
-            <strong class="commitment-amount">{{ preferences.formatCurrency(item.amount, item.currency || preferences.currency()) }}</strong>
+            <strong class="commitment-amount">{{
+              preferences.formatCurrency(item.amount, item.currency || preferences.currency())
+            }}</strong>
             <div class="commitment-actions">
-              <button type="button" class="table-action edit-action" (click)="toggle(item)">{{ item.active ? 'Pause' : 'Resume' }}</button>
-              <button type="button" class="table-action edit-action" (click)="edit(item)">Edit</button>
-              <button type="button" class="table-action delete-action" (click)="remove(item.id)">Delete</button>
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="toggle(item)"
+              >
+                {{ item.active ? 'Pause' : 'Resume' }}
+              </button>
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="edit(item)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="table-action delete-action"
+                (click)="remove(item.id)"
+              >
+                Delete
+              </button>
             </div>
           </article>
         }

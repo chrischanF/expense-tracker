@@ -29,8 +29,8 @@ export class AnalyticsService {
         continue;
       }
 
-      const dayKey = timeStamp.toISOString().slice(0, 10);
-      const monthKey = timeStamp.toISOString().slice(0, 7);
+      const dayKey = this.dayKey(timeStamp);
+      const monthKey = this.monthKey(timeStamp);
       const categoryKey = expense.category || 'Other';
 
       totalsByDay.set(dayKey, (totalsByDay.get(dayKey) ?? 0) + amount);
@@ -87,7 +87,9 @@ export class AnalyticsService {
       points.set(key, { label: key, total: 0, count: 0 });
     }
     for (const expense of expenses) {
-      const key = expense.date.slice(0, 10);
+      const timestamp = new Date(expense.date);
+      if (Number.isNaN(timestamp.getTime())) continue;
+      const key = this.dayKey(timestamp);
       const point = points.get(key);
       if (point) {
         point.total += Number(expense.amount) || 0;
@@ -105,7 +107,9 @@ export class AnalyticsService {
       points.set(key, { label: key, total: 0, count: 0 });
     }
     for (const expense of expenses) {
-      const point = points.get(expense.date.slice(0, 7));
+      const timestamp = new Date(expense.date);
+      if (Number.isNaN(timestamp.getTime())) continue;
+      const point = points.get(this.monthKey(timestamp));
       if (point) {
         point.total += Number(expense.amount) || 0;
         point.count += 1;
@@ -116,5 +120,9 @@ export class AnalyticsService {
 
   private dayKey(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  private monthKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 }

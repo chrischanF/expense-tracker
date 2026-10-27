@@ -1,3 +1,7 @@
+<app-loader
+  [active]="firestoreBusy()"
+  [message]="firestoreLoaderMessage()"
+/>
 <section class="page-intro">
   <div>
     <p class="section-kicker">Monthly guardrails</p>
@@ -7,26 +11,64 @@
 </section>
 
 <section class="budget-layout">
-  <section class="panel budget-editor" aria-labelledby="budget-editor-title">
+  <section
+    class="panel budget-editor"
+    aria-labelledby="budget-editor-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Spending cap</p><h2 id="budget-editor-title">Set a monthly budget</h2></div>
+      <div>
+        <p class="section-kicker">Spending cap</p>
+        <h2 id="budget-editor-title">Set a monthly budget</h2>
+      </div>
     </div>
-    <form class="planning-form" (ngSubmit)="saveBudget()">
+    <form
+      class="planning-form"
+      (ngSubmit)="saveBudget()"
+    >
       <label>
         <span>Category</span>
-        <app-dropdown [options]="categories" [value]="selectedCategory()" (valueChange)="selectedCategory.set($event)" ariaLabel="Budget category" />
+        <app-dropdown
+          [options]="categories"
+          [value]="selectedCategory()"
+          (valueChange)="selectedCategory.set($event)"
+          ariaLabel="Budget category"
+        />
       </label>
       <label>
         <span>Monthly limit</span>
-        <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="monthlyLimit()" (ngModelChange)="monthlyLimit.set($event)" name="monthlyLimit" required /></div>
+        <div class="input-with-prefix">
+          <span>{{ preferences.currency() }}</span
+          ><input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [ngModel]="monthlyLimit()"
+            (ngModelChange)="monthlyLimit.set($event)"
+            name="monthlyLimit"
+            required
+          />
+        </div>
       </label>
-      <div class="planning-actions"><button type="submit" class="primary-button">Save budget</button></div>
+      <div class="planning-actions">
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Save budget
+        </button>
+      </div>
     </form>
   </section>
 
-  <section class="panel budget-list" aria-labelledby="budget-list-title">
+  <section
+    class="panel budget-list"
+    aria-labelledby="budget-list-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Resets each month</p><h2 id="budget-list-title">Your category limits</h2></div>
+      <div>
+        <p class="section-kicker">Resets each month</p>
+        <h2 id="budget-list-title">Your category limits</h2>
+      </div>
       <span class="count-label">{{ budgets().length }}</span>
     </div>
     @if (budgets().length) {
@@ -37,10 +79,26 @@
               <strong>{{ budget.category }}</strong>
               <span>{{ formatCurrency(budget.spent) }} of {{ formatCurrency(budget.monthlyLimit) }}</span>
             </div>
-            <app-budget-progress [label]="budget.category + ' monthly budget'" [spent]="budget.spent" [limit]="budget.monthlyLimit" />
+            <app-budget-progress
+              [label]="budget.category + ' monthly budget'"
+              [spent]="budget.spent"
+              [limit]="budget.monthlyLimit"
+            />
             <div class="budget-item-actions">
-              <button type="button" class="table-action edit-action" (click)="editBudget(budget)">Edit</button>
-              <button type="button" class="table-action delete-action" (click)="deleteBudget(budget.id)">Remove</button>
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="editBudget(budget)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="table-action delete-action"
+                (click)="deleteBudget(budget.id)"
+              >
+                Remove
+              </button>
             </div>
           </article>
         }

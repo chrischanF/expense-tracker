@@ -1,54 +1,157 @@
+<app-loader
+  [active]="firestoreBusy()"
+  [message]="firestoreLoaderMessage()"
+/>
 <section class="page-intro">
   <div>
     <p class="section-kicker">Spending ledger</p>
     <h2>Transactions</h2>
     <p>Review and manage every recorded expense.</p>
   </div>
-  <button type="button" class="primary-button" (click)="openNewExpense()"><span aria-hidden="true">＋</span> Add expense</button>
+  <button
+    type="button"
+    class="primary-button"
+    (click)="openNewExpense()"
+  >
+    <span aria-hidden="true">＋</span> Add expense
+  </button>
 </section>
 
 @if (showForm()) {
-  <section class="panel transaction-form-panel" aria-labelledby="transaction-form-title">
+  <section
+    class="panel transaction-form-panel"
+    aria-labelledby="transaction-form-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Track a payment</p><h2 id="transaction-form-title">{{ editingExpenseId() ? 'Edit expense' : 'New expense' }}</h2></div>
-      <button type="button" class="icon-link" aria-label="Close expense form" (click)="cancelEdit()">×</button>
+      <div>
+        <p class="section-kicker">Track a payment</p>
+        <h2 id="transaction-form-title">{{ editingExpenseId() ? 'Edit expense' : 'New expense' }}</h2>
+      </div>
+      <button
+        type="button"
+        class="icon-link"
+        aria-label="Close expense form"
+        (click)="cancelEdit()"
+      >
+        ×
+      </button>
     </div>
     <div class="capture-controls">
       <label class="capture-upload">
         <span aria-hidden="true">▧</span> Scan receipt
-        <input type="file" accept="image/*" capture="environment" aria-label="Scan a receipt image" (change)="scanReceipt($event)" />
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          aria-label="Scan a receipt image"
+          (change)="scanReceipt($event)"
+        />
       </label>
-      <button type="button" class="secondary-button" [disabled]="isCapturing()" (click)="startVoiceLogging()"><span aria-hidden="true">◉</span> Voice log</button>
-      @if (captureStatus()) { <span class="capture-status" role="status">{{ captureStatus() }}</span> }
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="isCapturing()"
+        (click)="startVoiceLogging()"
+      >
+        <span aria-hidden="true">◉</span> Voice log
+      </button>
+      @if (captureStatus()) {
+        <span
+          class="capture-status"
+          role="status"
+          >{{ captureStatus() }}</span
+        >
+      }
     </div>
-    <form class="expense-form" (ngSubmit)="submitExpense()">
+    <form
+      class="expense-form"
+      (ngSubmit)="submitExpense()"
+    >
       <label>
         <span>Amount</span>
-        <div class="input-with-prefix"><span>{{ currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" placeholder="0.00" required /><app-dropdown [options]="currencyOptions()" [value]="currency()" (valueChange)="currency.set($event)" ariaLabel="Transaction currency" [compact]="true" /></div>
+        <div class="input-with-prefix">
+          <span>{{ currency() }}</span
+          ><input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [ngModel]="amount()"
+            (ngModelChange)="amount.set($event)"
+            name="amount"
+            placeholder="0.00"
+            required
+          /><app-dropdown
+            [options]="currencyOptions()"
+            [value]="currency()"
+            (valueChange)="currency.set($event)"
+            ariaLabel="Transaction currency"
+            [compact]="true"
+          />
+        </div>
       </label>
       <label>
         <span>Merchant <small>Optional</small></span>
-        <input type="text" [ngModel]="merchant()" (ngModelChange)="merchant.set($event)" name="merchant" maxlength="80" placeholder="Store or service" />
+        <input
+          type="text"
+          [ngModel]="merchant()"
+          (ngModelChange)="merchant.set($event)"
+          name="merchant"
+          maxlength="80"
+          placeholder="Store or service"
+        />
       </label>
       <label>
         <span>Category</span>
-        <app-dropdown [options]="categoryOptions" [value]="category()" (valueChange)="category.set($event)" ariaLabel="Category" />
+        <app-dropdown
+          [options]="categoryOptions"
+          [value]="category()"
+          (valueChange)="category.set($event)"
+          ariaLabel="Category"
+        />
       </label>
       <label>
         <span>Source</span>
-        <app-dropdown [options]="sourceDropdownOptions()" [value]="source()" (valueChange)="source.set($event)" ariaLabel="Source" />
+        <app-dropdown
+          [options]="sourceDropdownOptions()"
+          [value]="source()"
+          (valueChange)="source.set($event)"
+          ariaLabel="Source"
+        />
       </label>
       <label>
         <span>Date</span>
-        <input type="date" [ngModel]="expenseDate()" (ngModelChange)="expenseDate.set($event)" name="expenseDate" required />
+        <input
+          type="date"
+          [ngModel]="expenseDate()"
+          (ngModelChange)="expenseDate.set($event)"
+          name="expenseDate"
+          required
+        />
       </label>
       <label>
         <span>Note <small>Optional</small></span>
-        <input type="text" [ngModel]="note()" (ngModelChange)="note.set($event)" name="note" placeholder="What was it for?" />
+        <input
+          type="text"
+          [ngModel]="note()"
+          (ngModelChange)="note.set($event)"
+          name="note"
+          placeholder="What was it for?"
+        />
       </label>
       <div class="submit-row">
-        <button type="button" class="secondary-button" (click)="cancelEdit()">Cancel</button>
-        <button type="submit" class="primary-button">{{ editingExpenseId() ? 'Update expense' : 'Save expense' }}</button>
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          {{ editingExpenseId() ? 'Update expense' : 'Save expense' }}
+        </button>
       </div>
     </form>
   </section>
@@ -56,30 +159,88 @@
 
 <section class="panel transactions-panel">
   <div class="panel-heading activity-heading">
-    <div><p class="section-kicker">Your money, in motion</p><h2>All transactions <span class="count-label">{{ filteredExpenses().length }}</span></h2></div>
+    <div>
+      <p class="section-kicker">Your money, in motion</p>
+      <h2>
+        All transactions <span class="count-label">{{ filteredExpenses().length }}</span>
+      </h2>
+    </div>
     <div class="transaction-tools">
-      <button type="button" class="secondary-button export-button" (click)="exportCsv()" aria-label="Export filtered transactions as CSV" title="Export filtered transactions as CSV">↓ CSV</button>
-      <app-dropdown [options]="rangeOptions" [value]="range()" (valueChange)="range.set($event)" ariaLabel="Filter transactions by date" />
+      <button
+        type="button"
+        class="secondary-button export-button"
+        (click)="exportCsv()"
+        aria-label="Export filtered transactions as CSV"
+        title="Export filtered transactions as CSV"
+      >
+        ↓ CSV
+      </button>
+      @if (payPeriodFilter.selectedPeriod()) {
+        <span class="source-label">Selected pay period</span>
+      } @else {
+        <app-dropdown
+          [options]="rangeOptions"
+          [value]="range()"
+          (valueChange)="range.set($event)"
+          ariaLabel="Filter transactions by date"
+        />
+      }
     </div>
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Source</th><th>Note</th><th class="amount-col">Amount</th><th class="action-col">Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Merchant</th>
+          <th>Category</th>
+          <th>Source</th>
+          <th>Note</th>
+          <th class="amount-col">Amount</th>
+          <th class="action-col">Actions</th>
+        </tr>
+      </thead>
       <tbody>
         @if (filteredExpenses().length === 0) {
-          <tr><td colspan="7" class="empty-state">No expenses saved for this period.</td></tr>
+          <tr>
+            <td
+              colspan="7"
+              class="empty-state"
+            >
+              No expenses saved for this period.
+            </td>
+          </tr>
         }
         @for (expense of filteredExpenses(); track expense.id) {
           <tr>
             <td>{{ expense.date | date: 'mediumDate' }}</td>
             <td>{{ expense.merchant || '—' }}</td>
-            <td><span class="badge">{{ expense.category }}</span></td>
-            <td><span class="source-label">{{ expense.source || 'Other' }}</span></td>
+            <td>
+              <span class="badge">{{ expense.category }}</span>
+            </td>
+            <td>
+              <span class="source-label">{{ expense.source || 'Other' }}</span>
+            </td>
             <td>{{ expense.note || '—' }}</td>
-            <td class="amount-col amount-value">{{ formatExpenseCurrency(expense) }}<small class="converted-amount">{{ formatBaseAmount(expense) }}</small></td>
+            <td class="amount-col amount-value">
+              {{ formatExpenseCurrency(expense)
+              }}<small class="converted-amount">{{ formatBaseAmount(expense) }}</small>
+            </td>
             <td class="action-col action-buttons">
-              <button type="button" class="table-action edit-action" (click)="startEdit(expense)">Edit</button>
-              <button type="button" class="table-action delete-action" (click)="deleteExpense(expense.id)">Delete</button>
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="startEdit(expense)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="table-action delete-action"
+                (click)="deleteExpense(expense.id)"
+              >
+                Delete
+              </button>
             </td>
           </tr>
         }

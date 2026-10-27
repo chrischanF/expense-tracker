@@ -6,11 +6,12 @@ import { PlanningService } from '../../services/planning.service';
 import { EXPENSE_CATEGORIES } from '../../services/planning.model';
 import type { RecurringTransaction } from '../../types/planning.types';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
 
 @Component({
   selector: 'app-recurring-page',
-  imports: [DropdownComponent, FormsModule],
+  imports: [DropdownComponent, FormsModule, LoaderComponent],
   templateUrl: './recurring.page.html',
   styleUrl: './recurring.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +19,10 @@ import type { DropdownOption } from '../../types/dropdown.types';
 export class RecurringPage {
   private readonly planning = inject(PlanningService);
   readonly preferences = inject(AppPreferencesService);
+  readonly firestoreBusy = computed(() => this.planning.isLoading() || this.planning.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.planning.isLoading() ? 'Loading recurring expenses…' : 'Syncing your changes…',
+  );
   readonly exchangeRates = inject(ExchangeRateService);
   readonly items = this.planning.recurringTransactions;
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));

@@ -4,6 +4,7 @@ import {
   averagePayAmount,
   payAmountCount,
   payAmountsForProfile,
+  payPeriodForDate,
   toLocalDateInputValue,
   toMonthlyIncome,
 } from './income.model';
@@ -88,5 +89,22 @@ describe('additionalIncomeForMonth', () => {
 
   it('does not count a one-time stream outside its recorded month', () => {
     expect(additionalIncomeForMonth(streams, new Date(2026, 8, 20))).toBe(600);
+  });
+});
+
+describe('pay period history', () => {
+  const profile: IncomeProfile = {
+    amount: 1100,
+    payAmounts: [1000, 1200],
+    frequency: 'biweekly',
+    nextPayDate: '2026-10-30',
+    payPeriods: [
+      { startDate: '2026-10-01', endDate: '2026-10-31', amount: 2200 },
+      { startDate: '2026-11-01', endDate: '2026-11-14', amount: 1000 },
+    ],
+  };
+
+  it('finds the saved period containing a date', () => {
+    expect(payPeriodForDate(profile.payPeriods ?? [], new Date(2026, 9, 20))).toEqual(profile.payPeriods?.[0]);
   });
 });

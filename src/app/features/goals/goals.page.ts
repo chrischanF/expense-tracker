@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { PlanningService } from '../../services/planning.service';
 import type { SavingsGoal } from '../../types/planning.types';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 
 @Component({
   selector: 'app-goals-page',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, LoaderComponent],
   templateUrl: './goals.page.html',
   styleUrl: './goals.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +16,10 @@ import type { SavingsGoal } from '../../types/planning.types';
 export class GoalsPage {
   private readonly planning = inject(PlanningService);
   readonly preferences = inject(AppPreferencesService);
+  readonly firestoreBusy = computed(() => this.planning.isLoading() || this.planning.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.planning.isLoading() ? 'Loading savings goals…' : 'Syncing your changes…',
+  );
   readonly goals = this.planning.goals;
   readonly totalTarget = computed(() => this.goals().reduce((total, goal) => total + goal.targetAmount, 0));
   readonly totalSaved = computed(() => this.goals().reduce((total, goal) => total + goal.savedAmount, 0));

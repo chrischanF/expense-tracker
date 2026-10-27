@@ -5,12 +5,15 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
+import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
+import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-analytics-page',
-  imports: [BaseChartDirective, DropdownComponent],
+  imports: [BaseChartDirective, DropdownComponent, LoaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analytics.page.html',
   styleUrl: './analytics.page.scss',
@@ -18,8 +21,13 @@ import type { DropdownOption } from '../../types/dropdown.types';
 export class AnalyticsPage {
   private readonly expenseService = inject(ExpenseService);
   private readonly analytics = inject(AnalyticsService);
+  readonly payPeriodFilter = inject(PayPeriodFilterService);
   private readonly preferences = inject(AppPreferencesService);
   readonly exchangeRates = inject(ExchangeRateService);
+  readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenseService.isLoading() ? 'Loading your transactions…' : 'Syncing your changes…',
+  );
 
   private readonly palette = ['#168878', '#e3a23b', '#607f9b', '#d9755e', '#81a94c', '#9b7bb5'];
   readonly sourceFilter = signal('all');
@@ -29,17 +37,19 @@ export class AnalyticsPage {
     { value: 'year', label: 'Last 12 months' },
   ];
   readonly sourceOptions = computed(() =>
-    [...new Set(this.expenseService.expenses().map((expense) => expense.source || 'Other'))].sort((a, b) =>
-      a.localeCompare(b),
-    ),
+    [
+      ...new Set(
+        this.payPeriodFilter.filterExpenses(this.expenseService.expenses()).map((expense) => expense.source || 'Other'),
+      ),
+    ].sort((a, b) => a.localeCompare(b)),
   );
   readonly sourceFilterOptions = computed<DropdownOption[]>(() => [
     { value: 'all', label: 'All sources' },
     ...this.sourceOptions().map((source) => ({ value: source, label: source })),
   ]);
   private readonly baseExpenses = computed(() =>
-    this.expenseService
-      .expenses()
+    this.payPeriodFilter
+      .filterExpenses(this.expenseService.expenses())
       .map((expense) => ({
         expense,
         amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),
@@ -69,10 +79,20 @@ export class AnalyticsPage {
     };
   });
   readonly trendChartData = computed<ChartData<'line'>>(() => {
+    const period = this.payPeriodFilter.selectedPeriod();
+    const startDate = period ? toLocalDateInputValue(period.startDate) : '';
+    const endDate = period ? toLocalDateInputValue(period.endDate) : '';
+    const start = startDate ? new Date(`${startDate}T12:00:00`) : new Date();
+    const end = endDate ? new Date(`${endDate}T12:00:00`) : new Date();
+    const periodDays =
+      period && startDate && endDate ? Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1) : 30;
+    const periodMonths = period
+      ? Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth() + 1)
+      : 12;
     const points =
       this.trendRange() === '30d'
-        ? this.analytics.dailyTrend(this.filteredExpenses())
-        : this.analytics.monthlyTrend(this.filteredExpenses());
+        ? this.analytics.dailyTrend(this.filteredExpenses(), end, period ? periodDays : 30)
+        : this.analytics.monthlyTrend(this.filteredExpenses(), end, period ? periodMonths : 12);
     return {
       labels: points.map((point) => this.trendLabel(point.label)),
       datasets: [
