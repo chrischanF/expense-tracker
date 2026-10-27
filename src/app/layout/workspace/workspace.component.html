@@ -1,0 +1,63 @@
+<main class="workspace">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Personal finances</p>
+      <!-- <h1>Ledger</h1>
+      <p class="header-date">A clear view of where your money goes.</p> -->
+    </div>
+    <div
+      class="header-tools"
+      data-tour="global-tools"
+    >
+      <label class="currency-picker">
+        <span>Currency</span>
+        <app-dropdown
+          [options]="currencyOptions()"
+          [value]="preferences.currency()"
+          (valueChange)="preferences.setCurrency($event)"
+          ariaLabel="Currency"
+          [compact]="true"
+        />
+      </label>
+      <button
+        type="button"
+        class="theme-toggle"
+        [attr.aria-label]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        [title]="preferences.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        (click)="toggleTheme()"
+      >
+        @if (preferences.theme() === 'dark') {
+          <span aria-hidden="true">☼</span>
+        } @else {
+          <span aria-hidden="true">◐</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tour-button"
+        data-tour="page-tour-button"
+        aria-label="Start tour for this page"
+        title="Start a tour for this page"
+        (click)="startPageTour()"
+      >
+        <span
+          class="tour-icon"
+          aria-hidden="true"
+          >?</span
+        >
+        <span>Tour</span>
+      </button>
+    </div>
+  </header>
+
+  @if (authError()) {
+    <p
+      class="auth-error"
+      role="alert"
+    >
+      {{ authError() }}
+    </p>
+  }
+  <router-outlet />
+  <footer class="page-footer">A calmer way to keep track.</footer>
+</main>

@@ -44,3 +44,56 @@
     </div>
   </aside>
 </div>
+
+<section class="panel income-streams" aria-labelledby="income-streams-title">
+  <div class="panel-heading">
+    <div><p class="section-kicker">Beyond your paycheck</p><h2 id="income-streams-title">Other income</h2></div>
+    <div class="income-stream-total"><span>This month</span><strong>{{ formatCurrency(additionalIncomeThisMonth()) }}</strong></div>
+  </div>
+  <form class="income-stream-form" (ngSubmit)="saveIncomeStream()">
+    <label>
+      <span>Income name</span>
+      <input type="text" [ngModel]="streamName()" (ngModelChange)="streamName.set($event)" name="streamName" maxlength="60" placeholder="Client project or cash gift" required />
+    </label>
+    <label>
+      <span>Type</span>
+      <app-dropdown [options]="streamTypeOptions" [value]="streamType()" (valueChange)="streamType.set($event)" ariaLabel="Other income type" />
+    </label>
+    <label>
+      <span>Amount</span>
+      <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="streamAmount()" (ngModelChange)="streamAmount.set($event)" name="streamAmount" required /></div>
+    </label>
+    <label>
+      <span>Start or received date</span>
+      <input type="date" [ngModel]="streamDate()" (ngModelChange)="streamDate.set($event)" name="streamDate" required />
+    </label>
+    <label class="monthly-repeat-option">
+      <input type="checkbox" [ngModel]="streamRepeatsMonthly()" (ngModelChange)="streamRepeatsMonthly.set($event)" name="streamRepeatsMonthly" />
+      <span>Repeats monthly</span>
+    </label>
+    <div class="income-stream-submit">
+      @if (editingStreamId()) { <button type="button" class="secondary-button" (click)="resetIncomeStreamForm()">Cancel</button> }
+      <button type="submit" class="primary-button">{{ editingStreamId() ? 'Save changes' : 'Add income' }}</button>
+    </div>
+  </form>
+
+  @if (streams().length) {
+    <div class="income-stream-list">
+      @for (stream of streams(); track stream.id) {
+        <article class="income-stream-row">
+          <div class="income-stream-description">
+            <strong>{{ stream.name }}</strong>
+            <span>{{ stream.type }} · {{ stream.repeatsMonthly ? 'Monthly from ' : 'Received ' }}{{ stream.date | date: 'mediumDate' }}</span>
+          </div>
+          <strong class="income-stream-amount">{{ formatCurrency(stream.amount) }}</strong>
+          <div class="income-stream-actions">
+            <button type="button" class="table-action edit-action" (click)="editIncomeStream(stream)">Edit</button>
+            <button type="button" class="table-action delete-action" (click)="deleteIncomeStream(stream.id)">Delete</button>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="empty-state">No secondary income added yet.</p>
+  }
+</section>

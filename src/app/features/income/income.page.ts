@@ -1,18 +1,24 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IncomeFrequency, IncomeProfile, averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
+import { averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
+import { IncomeStreamService } from '../../services/income-stream.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import type { DropdownOption } from '../../types/dropdown.types';
+import type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
 
 @Component({
   selector: 'app-income-page',
-  imports: [FormsModule, DropdownComponent],
+  imports: [DatePipe, FormsModule, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './income.page.html',
+  styleUrl: './income.page.scss',
 })
 export class IncomePage {
   private readonly expenseService = inject(ExpenseService);
+  private readonly incomeStreamService = inject(IncomeStreamService);
   readonly preferences = inject(AppPreferencesService);
   private readonly profile = this.expenseService.incomeProfile;
 
@@ -20,15 +26,37 @@ export class IncomePage {
   readonly payAmounts = signal(payAmountsForProfile(this.profile()));
   readonly nextPayDate = signal(this.profile().nextPayDate);
   readonly saved = signal(false);
+  readonly streams = this.incomeStreamService.streams;
+  readonly additionalIncomeThisMonth = this.incomeStreamService.currentMonthTotal;
+  readonly streamTypeOptions: DropdownOption[] = [
+    'Freelance',
+    'Side hustle',
+    'Dividend',
+    'Gift',
+    'Bonus',
+    'Asset sale',
+    'Other',
+  ].map((type) => ({ value: type, label: type }));
+  readonly streamName = signal('');
+  readonly streamType = signal('Freelance');
+  readonly streamAmount = signal('');
+  readonly streamDate = signal(new Date().toISOString().slice(0, 10));
+  readonly streamRepeatsMonthly = signal(false);
+  readonly editingStreamId = signal<string | null>(null);
   readonly averagePayAmount = computed(() => averagePayAmount(this.payAmounts()));
-  readonly monthlyEquivalent = computed(() => toMonthlyIncome({
-    amount: this.averagePayAmount(),
-    payAmounts: this.payAmounts(),
-    frequency: this.frequency(),
-    nextPayDate: this.nextPayDate(),
-  }));
+  readonly fixedMonthlyEquivalent = computed(() =>
+    toMonthlyIncome({
+      amount: this.averagePayAmount(),
+      payAmounts: this.payAmounts(),
+      frequency: this.frequency(),
+      nextPayDate: this.nextPayDate(),
+    }),
+  );
+  readonly monthlyEquivalent = computed(() => this.fixedMonthlyEquivalent() + this.additionalIncomeThisMonth());
   readonly payAmountSlots = computed(() => this.payAmounts().map((amount, index) => ({ amount, index })));
-  readonly frequencyDetail = computed(() => this.frequencyOptions.find((option) => option.value === this.frequency())?.detail ?? '');
+  readonly frequencyDetail = computed(
+    () => this.frequencyOptions.find((option) => option.value === this.frequency())?.detail ?? '',
+  );
   readonly frequencyOptions: Array<{ value: IncomeFrequency; label: string; detail: string }> = [
     { value: 'weekly', label: 'Weekly', detail: '52 pay periods per year' },
     { value: 'biweekly', label: 'Every two weeks', detail: '26 pay periods per year' },
@@ -44,15 +72,19 @@ export class IncomePage {
     const currentAmounts = this.payAmounts();
     const fallbackAmount = this.averagePayAmount();
     this.frequency.set(frequency);
-    this.payAmounts.set(Array.from({ length: payAmountCount(frequency) }, (_, index) => currentAmounts[index] ?? fallbackAmount));
+    this.payAmounts.set(
+      Array.from({ length: payAmountCount(frequency) }, (_, index) => currentAmounts[index] ?? fallbackAmount),
+    );
     this.saved.set(false);
   }
 
   updatePayAmount(index: number, value: string): void {
     const amount = Number(value);
-    this.payAmounts.update((current) => current.map((existing, currentIndex) => currentIndex === index
-      ? (Number.isFinite(amount) ? amount : 0)
-      : existing));
+    this.payAmounts.update((current) =>
+      current.map((existing, currentIndex) =>
+        currentIndex === index ? (Number.isFinite(amount) ? amount : 0) : existing,
+      ),
+    );
     this.saved.set(false);
   }
 
@@ -70,5 +102,48 @@ export class IncomePage {
     };
     this.expenseService.setIncomeProfile(profile);
     this.saved.set(true);
+  }
+
+  saveIncomeStream(): void {
+    const amount = Number(this.streamAmount());
+    if (!this.streamName().trim() || !Number.isFinite(amount) || amount <= 0 || !this.streamDate()) return;
+    const stream = {
+      name: this.streamName().trim(),
+      type: this.streamType(),
+      amount,
+      date: this.streamDate(),
+      repeatsMonthly: this.streamRepeatsMonthly(),
+    };
+    const editingId = this.editingStreamId();
+    if (editingId) {
+      const current = this.streams().find((entry) => entry.id === editingId);
+      if (current) this.incomeStreamService.update({ ...current, ...stream });
+    } else {
+      this.incomeStreamService.add(stream);
+    }
+    this.resetIncomeStreamForm();
+  }
+
+  editIncomeStream(stream: IncomeStream): void {
+    this.editingStreamId.set(stream.id);
+    this.streamName.set(stream.name);
+    this.streamType.set(stream.type);
+    this.streamAmount.set(String(stream.amount));
+    this.streamDate.set(stream.date);
+    this.streamRepeatsMonthly.set(stream.repeatsMonthly);
+  }
+
+  deleteIncomeStream(id: string): void {
+    this.incomeStreamService.delete(id);
+    if (this.editingStreamId() === id) this.resetIncomeStreamForm();
+  }
+
+  resetIncomeStreamForm(): void {
+    this.editingStreamId.set(null);
+    this.streamName.set('');
+    this.streamType.set('Freelance');
+    this.streamAmount.set('');
+    this.streamDate.set(new Date().toISOString().slice(0, 10));
+    this.streamRepeatsMonthly.set(false);
   }
 }

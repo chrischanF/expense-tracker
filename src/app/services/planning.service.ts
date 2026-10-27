@@ -5,17 +5,15 @@ import { ExpenseService } from './expense.service';
 import { AppPreferencesService } from './app-preferences.service';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
-import { CategoryBudget, RecurringTransaction, SavingsGoal, recurringDateForMonth } from './planning.model';
-
-type PlanningCollection = 'recurring' | 'budgets' | 'goals';
-type PlanningRecord = RecurringTransaction | CategoryBudget | SavingsGoal;
-
-interface PendingPlanningChange {
-  collection: PlanningCollection;
-  id: string;
-  type: 'upsert' | 'delete';
-  record?: PlanningRecord;
-}
+import { recurringDateForMonth } from './planning.model';
+import type {
+  CategoryBudget,
+  PendingPlanningChange,
+  PlanningCollection,
+  PlanningRecord,
+  RecurringTransaction,
+  SavingsGoal,
+} from '../types/planning.types';
 
 @Injectable({ providedIn: 'root' })
 export class PlanningService {
@@ -111,20 +109,23 @@ export class PlanningService {
       if (!item.active || item.dueDay > today.getDate()) {
         continue;
       }
-      const exists = this.expenses.expenses().some((expense) =>
-        expense.recurringId === item.id && expense.recurringMonth === monthKey,
-      );
+      const exists = this.expenses
+        .expenses()
+        .some((expense) => expense.recurringId === item.id && expense.recurringMonth === monthKey);
       if (exists) {
         continue;
       }
-      this.expenses.addExpense({
-        amount: item.amount,
-        currency: item.currency || this.preferences.currency(),
-        category: item.category,
-        source: item.source,
-        date: recurringDateForMonth(today.getFullYear(), today.getMonth(), item.dueDay),
-        note: `${item.name} (recurring)`,
-      }, { id: `recurring-${item.id}-${monthKey}`, recurringId: item.id, recurringMonth: monthKey });
+      this.expenses.addExpense(
+        {
+          amount: item.amount,
+          currency: item.currency || this.preferences.currency(),
+          category: item.category,
+          source: item.source,
+          date: recurringDateForMonth(today.getFullYear(), today.getMonth(), item.dueDay),
+          note: `${item.name} (recurring)`,
+        },
+        { id: `recurring-${item.id}-${monthKey}`, recurringId: item.id, recurringMonth: monthKey },
+      );
     }
   }
 
@@ -145,7 +146,10 @@ export class PlanningService {
   }
 
   private remove<T extends PlanningRecord>(collection: PlanningCollection, records: T[], id: string): void {
-    this.writeCollection(collection, records.filter((item) => item.id !== id));
+    this.writeCollection(
+      collection,
+      records.filter((item) => item.id !== id),
+    );
     this.queueChange({ collection, id, type: 'delete' });
   }
 
@@ -218,20 +222,17 @@ export class PlanningService {
     }
     const { collection, onSnapshot } = await import('firebase/firestore');
     for (const name of ['recurring', 'budgets', 'goals'] as const) {
-      const unsubscribe = onSnapshot(
-        collection(firestore, 'users', userId, name),
-        (snapshot) => {
-          const records = snapshot.docs.map((entry) => ({ ...entry.data(), id: entry.id }) as PlanningRecord);
-          const merged = new Map(records.map((record) => [record.id, record]));
-          for (const change of this.pendingChanges.values()) {
-            if (change.collection !== name) continue;
-            if (change.type === 'delete') merged.delete(change.id);
-            else if (change.record) merged.set(change.id, change.record);
-          }
-          this.writeCollection(name, [...merged.values()]);
-          void this.syncPendingChanges();
-        },
-      );
+      const unsubscribe = onSnapshot(collection(firestore, 'users', userId, name), (snapshot) => {
+        const records = snapshot.docs.map((entry) => ({ ...entry.data(), id: entry.id }) as PlanningRecord);
+        const merged = new Map(records.map((record) => [record.id, record]));
+        for (const change of this.pendingChanges.values()) {
+          if (change.collection !== name) continue;
+          if (change.type === 'delete') merged.delete(change.id);
+          else if (change.record) merged.set(change.id, change.record);
+        }
+        this.writeCollection(name, [...merged.values()]);
+        void this.syncPendingChanges();
+      });
       this.unsubscribeCollections.push(unsubscribe);
     }
   }
@@ -272,7 +273,7 @@ export class PlanningService {
   private readPendingChanges(userId: string): void {
     try {
       const raw = localStorage.getItem(`expense-tracker.${userId}.pending-planning`);
-      const changes = raw ? JSON.parse(raw) as PendingPlanningChange[] : [];
+      const changes = raw ? (JSON.parse(raw) as PendingPlanningChange[]) : [];
       for (const change of changes) {
         this.pendingChanges.set(`${change.collection}:${change.id}`, change);
       }
@@ -284,15 +285,18 @@ export class PlanningService {
   private persistPendingChanges(): void {
     if (!this.userId) return;
     try {
-      localStorage.setItem(`expense-tracker.${this.userId}.pending-planning`, JSON.stringify([...this.pendingChanges.values()]));
+      localStorage.setItem(
+        `expense-tracker.${this.userId}.pending-planning`,
+        JSON.stringify([...this.pendingChanges.values()]),
+      );
     } catch {}
   }
 
   private readLocal<T extends PlanningRecord>(userId: string, collection: PlanningCollection): T[] {
     try {
       const raw = localStorage.getItem(this.localKey(userId, collection));
-      const records = raw ? JSON.parse(raw) as unknown : [];
-      return Array.isArray(records) ? records as T[] : [];
+      const records = raw ? (JSON.parse(raw) as unknown) : [];
+      return Array.isArray(records) ? (records as T[]) : [];
     } catch {
       return [];
     }

@@ -3,10 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
-import { CategoryBudget, EXPENSE_CATEGORIES } from '../../services/planning.model';
+import { EXPENSE_CATEGORIES } from '../../services/planning.model';
+import type { CategoryBudget } from '../../types/planning.types';
 import { PlanningService } from '../../services/planning.service';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
-import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
+import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import type { DropdownOption } from '../../types/dropdown.types';
 
 @Component({
   selector: 'app-budgets-page',
@@ -22,7 +24,8 @@ export class BudgetsPage {
   private readonly exchangeRates = inject(ExchangeRateService);
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));
   readonly budgets = computed(() => {
-    const expenses = this.expenses.getExpensesByDateRange('month')
+    const expenses = this.expenses
+      .getExpensesByDateRange('month')
       .map((expense) => ({
         expense,
         amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),
@@ -30,7 +33,8 @@ export class BudgetsPage {
       .filter((entry) => entry.amount !== null);
     return this.planning.budgets().map((budget) => ({
       ...budget,
-      spent: expenses.filter((entry) => entry.expense.category === budget.category)
+      spent: expenses
+        .filter((entry) => entry.expense.category === budget.category)
         .reduce((total, entry) => total + (entry.amount ?? 0), 0),
     }));
   });

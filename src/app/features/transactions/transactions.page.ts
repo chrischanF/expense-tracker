@@ -3,18 +3,21 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ExpenseItem } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { ReceiptParserService } from '../../services/receipt-parser.service';
-import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
+import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import type { DropdownOption } from '../../types/dropdown.types';
+import type { ExpenseItem } from '../../types/analytics.types';
+import type { SpeechRecognitionConstructor } from '../../types/speech-recognition.types';
 
 @Component({
   selector: 'app-transactions-page',
   imports: [DatePipe, FormsModule, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transactions.page.html',
+  styleUrl: './transactions.page.scss',
 })
 export class TransactionsPage {
   private readonly expenseService = inject(ExpenseService);
@@ -30,18 +33,31 @@ export class TransactionsPage {
   readonly editingExpenseId = signal<string | null>(null);
   readonly filteredExpenses = computed(() => this.expenseService.getExpensesByDateRange(this.range()));
   readonly categories = ['Food', 'Transport', 'Housing', 'Bills', 'Shopping', 'Other'];
-  readonly categoryOptions: DropdownOption[] = this.categories.map((category) => ({ value: category, label: category }));
+  readonly categoryOptions: DropdownOption[] = this.categories.map((category) => ({
+    value: category,
+    label: category,
+  }));
   readonly rangeOptions: DropdownOption[] = [
     { value: 'month', label: 'This month' },
     { value: '30d', label: 'Last 30 days' },
     { value: 'year', label: 'This year' },
     { value: 'all', label: 'All time' },
   ];
-  readonly sourceOptions = computed(() => [...new Set([
-    'Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Other',
-    ...this.expenseService.expenses().map((expense) => expense.source || 'Other'),
-  ])].sort((a, b) => a.localeCompare(b)));
-  readonly sourceDropdownOptions = computed<DropdownOption[]>(() => this.sourceOptions().map((source) => ({ value: source, label: source })));
+  readonly sourceOptions = computed(() =>
+    [
+      ...new Set([
+        'Cash',
+        'Credit Card',
+        'Debit Card',
+        'Bank Transfer',
+        'Other',
+        ...this.expenseService.expenses().map((expense) => expense.source || 'Other'),
+      ]),
+    ].sort((a, b) => a.localeCompare(b)),
+  );
+  readonly sourceDropdownOptions = computed<DropdownOption[]>(() =>
+    this.sourceOptions().map((source) => ({ value: source, label: source })),
+  );
   readonly amount = signal('');
   readonly category = signal('Food');
   readonly source = signal('Cash');
@@ -51,10 +67,12 @@ export class TransactionsPage {
   readonly currency = signal(this.preferences.currency());
   readonly captureStatus = signal('');
   readonly isCapturing = signal(false);
-  readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({
-    value: currency,
-    label: currency,
-  })));
+  readonly currencyOptions = computed<DropdownOption[]>(() =>
+    this.preferences.currencyOptions.map((currency) => ({
+      value: currency,
+      label: currency,
+    })),
+  );
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -80,7 +98,17 @@ export class TransactionsPage {
       String(this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()) ?? ''),
       this.preferences.currency(),
     ]);
-    const columns = ['Date', 'Merchant', 'Category', 'Source', 'Note', 'Amount', 'Currency', 'Base amount', 'Base currency'];
+    const columns = [
+      'Date',
+      'Merchant',
+      'Category',
+      'Source',
+      'Note',
+      'Amount',
+      'Currency',
+      'Base amount',
+      'Base currency',
+    ];
     const csv = [columns, ...rows]
       .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
       .join('\r\n');
@@ -219,29 +247,15 @@ export class TransactionsPage {
     this.captureStatus.set('');
   }
 
-  private applyParsedDraft(draft: { amount: number | null; merchant: string; category: string; currency: string | null }): void {
+  private applyParsedDraft(draft: {
+    amount: number | null;
+    merchant: string;
+    category: string;
+    currency: string | null;
+  }): void {
     if (draft.amount !== null) this.amount.set(String(draft.amount));
     if (draft.merchant) this.merchant.set(draft.merchant);
     if (this.categories.includes(draft.category)) this.category.set(draft.category);
     if (draft.currency && this.preferences.currencyOptions.includes(draft.currency)) this.currency.set(draft.currency);
   }
 }
-
-interface SpeechRecognitionResultLike {
-  transcript: string;
-}
-
-interface SpeechRecognitionEventLike {
-  results: ArrayLike<ArrayLike<SpeechRecognitionResultLike>>;
-}
-
-interface SpeechRecognitionLike {
-  lang: string;
-  interimResults: boolean;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-  start(): void;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { PlanningService } from '../../services/planning.service';
-import { SavingsGoal } from '../../services/planning.model';
+import type { SavingsGoal } from '../../types/planning.types';
 
 @Component({
   selector: 'app-goals-page',
@@ -56,7 +56,7 @@ export class GoalsPage {
   }
 
   progress(goal: SavingsGoal): number {
-    return goal.targetAmount > 0 ? Math.min(100, Math.round(goal.savedAmount / goal.targetAmount * 100)) : 0;
+    return goal.targetAmount > 0 ? Math.min(100, Math.round((goal.savedAmount / goal.targetAmount) * 100)) : 0;
   }
 
   formatCurrency(amount: number): string {

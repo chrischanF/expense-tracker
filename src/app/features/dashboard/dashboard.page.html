@@ -4,21 +4,42 @@
     <h2>Overview</h2>
     <p>Track your spending and see what is available this month.</p>
   </div>
-  <a class="primary-button" routerLink="/transactions" [queryParams]="{ action: 'add' }"><span aria-hidden="true">＋</span> Add expense</a>
+  <a
+    class="primary-button"
+    routerLink="/transactions"
+    [queryParams]="{ action: 'add' }"
+    ><span aria-hidden="true">＋</span> Add expense</a
+  >
 </section>
 
-<section class="stats-grid" aria-label="Monthly summary">
+<section
+  class="stats-grid"
+  aria-label="Monthly summary"
+>
   <article class="stat-card income-stat">
     <p>Monthly income</p>
     <strong>{{ formatCurrency(monthlyIncome()) }}</strong>
-    <span>{{ incomeProfile().amount | number: '1.0-2' }} paid {{ frequencyLabel() }}</span>
+    <span
+      >{{ formatCurrency(fixedMonthlyIncome()) }} fixed · {{ formatCurrency(additionalIncomeThisMonth()) }} extra this
+      month</span
+    >
   </article>
-  <article class="stat-card" [class.budget-watch]="budgetStatus() === 'watch'" [class.budget-critical]="budgetStatus() === 'critical'" [class.budget-over]="budgetStatus() === 'over'">
+  <article
+    class="stat-card"
+    [class.budget-watch]="budgetStatus() === 'watch'"
+    [class.budget-critical]="budgetStatus() === 'critical'"
+    [class.budget-over]="budgetStatus() === 'over'"
+  >
     <p>Spent this month</p>
     <strong>{{ formatCurrency(summary().total) }}</strong>
     <span>{{ incomeUsageRatio().toFixed(0) }}% of monthly income</span>
   </article>
-  <article class="stat-card" [class.budget-watch]="budgetStatus() === 'watch'" [class.budget-critical]="budgetStatus() === 'critical'" [class.budget-over]="budgetStatus() === 'over'">
+  <article
+    class="stat-card"
+    [class.budget-watch]="budgetStatus() === 'watch'"
+    [class.budget-critical]="budgetStatus() === 'critical'"
+    [class.budget-over]="budgetStatus() === 'over'"
+  >
     <p>Remaining</p>
     <strong class="remaining-value">{{ formatCurrency(remainingBalance()) }}</strong>
     <span>After recorded expenses</span>
@@ -30,59 +51,140 @@
   </article>
 </section>
 
-<section class="planning-summary-grid" aria-label="Spending plan and reminders">
+<section
+  class="planning-summary-grid"
+  aria-label="Spending plan and reminders"
+>
   <article class="panel safe-spend-panel">
     <div class="panel-heading">
-      <div><p class="section-kicker">After bills and savings</p><h2>Safe to spend</h2></div>
-      <div class="segmented-control" aria-label="Allowance period">
-        <button type="button" [class.active]="allowancePeriod() === 'daily'" (click)="allowancePeriod.set('daily')">Today</button>
-        <button type="button" [class.active]="allowancePeriod() === 'weekly'" (click)="allowancePeriod.set('weekly')">7 days</button>
+      <div>
+        <p class="section-kicker">After bills and savings</p>
+        <h2>Safe to spend</h2>
+      </div>
+      <div
+        class="segmented-control"
+        aria-label="Allowance period"
+      >
+        <button
+          type="button"
+          [class.active]="allowancePeriod() === 'daily'"
+          (click)="allowancePeriod.set('daily')"
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          [class.active]="allowancePeriod() === 'weekly'"
+          (click)="allowancePeriod.set('weekly')"
+        >
+          7 days
+        </button>
       </div>
     </div>
     <strong class="safe-spend-amount">{{ formatCurrency(safeToSpendAmount()) }}</strong>
-    <p class="safe-spend-caption">{{ formatCurrency(safeToSpendPlan().remaining) }} left across {{ safeToSpendPlan().daysRemaining }} days this month</p>
-    <p class="safe-spend-note">Based on recorded spending, unpaid recurring bills, and planned monthly goal contributions.</p>
-    @if (exchangeRates.isLoading()) { <p class="safe-spend-note" role="status">Refreshing exchange rates; foreign-currency amounts are temporarily excluded.</p> }
-    @if (exchangeRates.error()) { <p class="rate-warning" role="status">{{ exchangeRates.error() }} Foreign amounts are excluded from converted totals until a rate is available.</p> }
+    <p class="safe-spend-caption">
+      {{ formatCurrency(safeToSpendPlan().remaining) }} left across {{ safeToSpendPlan().daysRemaining }} days this
+      month
+    </p>
+    <p class="safe-spend-note">
+      Based on recorded spending, unpaid recurring bills, and planned monthly goal contributions.
+    </p>
+    @if (exchangeRates.isLoading()) {
+      <p
+        class="safe-spend-note"
+        role="status"
+      >
+        Refreshing exchange rates; foreign-currency amounts are temporarily excluded.
+      </p>
+    }
+    @if (exchangeRates.error()) {
+      <p
+        class="rate-warning"
+        role="status"
+      >
+        {{ exchangeRates.error() }} Foreign amounts are excluded from converted totals until a rate is available.
+      </p>
+    }
   </article>
 
   <article class="panel bill-reminders-panel">
     <div class="panel-heading">
-      <div><p class="section-kicker">Next seven days</p><h2>Bill reminders</h2></div>
+      <div>
+        <p class="section-kicker">Next seven days</p>
+        <h2>Bill reminders</h2>
+      </div>
       @if (billReminders.isSupported() && billReminders.permission() !== 'granted') {
-        <button type="button" class="table-action edit-action" (click)="enableBillReminders()">Enable alerts</button>
+        <button
+          type="button"
+          class="table-action edit-action"
+          (click)="enableBillReminders()"
+        >
+          Enable alerts
+        </button>
       } @else if (billReminders.permission() === 'granted') {
-        <span class="notification-enabled" role="status">Alerts on</span>
+        <span
+          class="notification-enabled"
+          role="status"
+          >Alerts on</span
+        >
       }
     </div>
     @if (upcomingBills().length) {
       <div class="bill-reminder-list">
         @for (bill of upcomingBills(); track bill.id) {
           <div class="bill-reminder-row">
-            <div><strong>{{ bill.name }}</strong><span>{{ bill.category }} · {{ bill.dueDate | date: 'mediumDate' }}</span></div>
-            <div class="bill-reminder-due"><strong>{{ preferences.formatCurrency(bill.amount, bill.currency || preferences.currency()) }}</strong><span>{{ bill.daysUntilDue === 0 ? 'Due today' : 'In ' + bill.daysUntilDue + ' days' }}</span></div>
+            <div>
+              <strong>{{ bill.name }}</strong
+              ><span>{{ bill.category }} · {{ bill.dueDate | date: 'mediumDate' }}</span>
+            </div>
+            <div class="bill-reminder-due">
+              <strong>{{ preferences.formatCurrency(bill.amount, bill.currency || preferences.currency()) }}</strong
+              ><span>{{ bill.daysUntilDue === 0 ? 'Due today' : 'In ' + bill.daysUntilDue + ' days' }}</span>
+            </div>
           </div>
         }
       </div>
     } @else {
       <p class="empty-state">No active bills are due in the next seven days.</p>
     }
-    @if (!billReminders.isSupported()) { <p class="safe-spend-note">Browser notifications are unavailable; reminders remain visible in the dashboard.</p> }
-    @else { <p class="safe-spend-note">Browser alerts run while the app is open. Dashboard reminders remain available any time.</p> }
+    @if (!billReminders.isSupported()) {
+      <p class="safe-spend-note">Browser notifications are unavailable; reminders remain visible in the dashboard.</p>
+    } @else {
+      <p class="safe-spend-note">
+        Browser alerts run while the app is open. Dashboard reminders remain available any time.
+      </p>
+    }
   </article>
 </section>
 
 @if (budgetProgress().length) {
-  <section class="panel dashboard-budgets" aria-labelledby="dashboard-budgets-title">
+  <section
+    class="panel dashboard-budgets"
+    aria-labelledby="dashboard-budgets-title"
+  >
     <div class="panel-heading">
-      <div><p class="section-kicker">Monthly guardrails</p><h2 id="dashboard-budgets-title">Category budgets</h2></div>
-      <a class="text-link" routerLink="/budgets">Manage budgets <span aria-hidden="true">→</span></a>
+      <div>
+        <p class="section-kicker">Monthly guardrails</p>
+        <h2 id="dashboard-budgets-title">Category budgets</h2>
+      </div>
+      <a
+        class="text-link"
+        routerLink="/budgets"
+        >Manage budgets <span aria-hidden="true">→</span></a
+      >
     </div>
     <div class="dashboard-budget-list">
       @for (budget of budgetProgress(); track budget.id) {
         <div class="dashboard-budget-row">
-          <div class="dashboard-budget-heading"><strong>{{ budget.category }}</strong><span>{{ formatCurrency(budget.spent) }} / {{ formatCurrency(budget.monthlyLimit) }}</span></div>
-          <app-budget-progress [label]="budget.category + ' monthly budget'" [spent]="budget.spent" [limit]="budget.monthlyLimit" />
+          <div class="dashboard-budget-heading">
+            <strong>{{ budget.category }}</strong
+            ><span>{{ formatCurrency(budget.spent) }} / {{ formatCurrency(budget.monthlyLimit) }}</span>
+          </div>
+          <app-budget-progress
+            [label]="budget.category + ' monthly budget'"
+            [spent]="budget.spent"
+            [limit]="budget.monthlyLimit"
+          />
         </div>
       }
     </div>
@@ -92,14 +194,25 @@
 <section class="dashboard-grid">
   <article class="panel dashboard-panel">
     <div class="panel-heading">
-      <div><p class="section-kicker">Your money, in motion</p><h2>Recent activity</h2></div>
-      <a class="text-link" routerLink="/transactions">All transactions <span aria-hidden="true">→</span></a>
+      <div>
+        <p class="section-kicker">Your money, in motion</p>
+        <h2>Recent activity</h2>
+      </div>
+      <a
+        class="text-link"
+        routerLink="/transactions"
+        >All transactions <span aria-hidden="true">→</span></a
+      >
     </div>
     @if (recentExpenses().length) {
       <div class="recent-list">
         @for (expense of recentExpenses(); track expense.id) {
           <div class="recent-item">
-            <span class="category-mark" aria-hidden="true">{{ expense.category.charAt(0) }}</span>
+            <span
+              class="category-mark"
+              aria-hidden="true"
+              >{{ categoryIcon(expense.category) }}</span
+            >
             <div class="recent-description">
               <strong>{{ expense.category }}</strong>
               <span>{{ expense.note || 'Expense' }} · {{ expense.date | date: 'mediumDate' }}</span>
@@ -111,27 +224,60 @@
     } @else {
       <div class="empty-panel">
         <p>No expenses yet</p>
-        <a class="text-link" routerLink="/transactions" [queryParams]="{ action: 'add' }">Add your first expense <span aria-hidden="true">→</span></a>
+        <a
+          class="text-link"
+          routerLink="/transactions"
+          [queryParams]="{ action: 'add' }"
+          >Add your first expense <span aria-hidden="true">→</span></a
+        >
       </div>
     }
   </article>
 
   <article class="panel dashboard-panel income-summary-panel">
     <div class="panel-heading">
-      <div><p class="section-kicker">Your baseline</p><h2>Income schedule</h2></div>
-      <a class="icon-link" routerLink="/income" aria-label="Edit income schedule" title="Edit income schedule">↗</a>
+      <div>
+        <p class="section-kicker">Your baseline</p>
+        <h2>Income schedule</h2>
+      </div>
+      <a
+        class="icon-link"
+        routerLink="/income"
+        aria-label="Edit income schedule"
+        title="Edit income schedule"
+        >↗</a
+      >
     </div>
     <div class="income-summary-amount">{{ formatCurrency(monthlyIncome()) }}<span> / month</span></div>
     <p class="income-summary-copy">
       {{ formatCurrency(incomeProfile().amount) }}
       @switch (incomeProfile().frequency) {
-        @case ('weekly') { paid weekly }
-        @case ('biweekly') { paid every two weeks }
-        @case ('twice-monthly') { paid twice a month }
-        @case ('monthly') { paid monthly }
+        @case ('weekly') {
+          paid weekly
+        }
+        @case ('biweekly') {
+          paid every two weeks
+        }
+        @case ('twice-monthly') {
+          paid twice a month
+        }
+        @case ('monthly') {
+          paid monthly
+        }
       }
     </p>
-    <div class="schedule-date"><span>Next payday</span><strong>{{ incomeProfile().nextPayDate | date: 'fullDate' }}</strong></div>
-    <a class="secondary-button schedule-link" routerLink="/income">Manage income</a>
+    @if (additionalIncomeThisMonth() > 0) {
+      <p class="income-summary-copy">
+        Includes {{ formatCurrency(additionalIncomeThisMonth()) }} from other income this month.
+      </p>
+    }
+    <div class="schedule-date">
+      <span>Next payday</span><strong>{{ incomeProfile().nextPayDate | date: 'fullDate' }}</strong>
+    </div>
+    <a
+      class="secondary-button schedule-link"
+      routerLink="/income"
+      >Manage income</a
+    >
   </article>
 </section>

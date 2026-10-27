@@ -1,14 +1,16 @@
 import { computed, Injectable, effect, signal } from '@angular/core';
 import type { Firestore } from 'firebase/firestore';
-import { IncomeProfile, averagePayAmount, payAmountsForProfile, toLocalDateInputValue, toMonthlyIncome } from '../features/income/income.model';
-import { ExpenseItem } from './analytics.service';
+import {
+  averagePayAmount,
+  payAmountsForProfile,
+  toLocalDateInputValue,
+  toMonthlyIncome,
+} from '../features/income/income.model';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
-
-interface PendingExpenseChange {
-  type: 'upsert' | 'delete';
-  expense?: ExpenseItem;
-}
+import type { IncomeProfile } from '../types/income.types';
+import type { ExpenseItem } from '../types/analytics.types';
+import type { PendingExpenseChange } from '../types/expense.types';
 
 @Injectable({ providedIn: 'root' })
 export class ExpenseService {
@@ -132,7 +134,7 @@ export class ExpenseService {
 
     try {
       const raw = localStorage.getItem(key);
-      const parsed = raw ? JSON.parse(raw) as ExpenseItem[] : [];
+      const parsed = raw ? (JSON.parse(raw) as ExpenseItem[]) : [];
       return Array.isArray(parsed) ? parsed.map((expense) => this.normalizeExpense(expense)) : [];
     } catch {
       return [];
@@ -205,7 +207,7 @@ export class ExpenseService {
   private readPendingChanges(): void {
     try {
       const raw = localStorage.getItem(this.queueKey());
-      const pending = raw ? JSON.parse(raw) as Record<string, PendingExpenseChange> : {};
+      const pending = raw ? (JSON.parse(raw) as Record<string, PendingExpenseChange>) : {};
       for (const [id, change] of Object.entries(pending)) {
         this.pendingChanges.set(id, change);
       }
@@ -239,35 +241,40 @@ export class ExpenseService {
       return;
     }
 
-    void this.firebase.getFirestore().then(async (firestore) => {
-      if (!firestore || this.userId !== userId) {
-        return;
-      }
-      const { collection, onSnapshot } = await import('firebase/firestore');
-      this.unsubscribeExpenses = onSnapshot(
-        collection(firestore, 'users', userId, 'expenses'),
-        (snapshot) => {
-          const cloudExpenses = snapshot.docs.map((entry) => this.normalizeExpense({ ...entry.data(), id: entry.id } as ExpenseItem));
-          const pending = new Map(this.pendingChanges);
-          const merged = new Map(cloudExpenses.map((expense) => [expense.id, expense]));
-          for (const [id, change] of pending) {
-            if (change.type === 'delete') {
-              merged.delete(id);
-            } else if (change.expense) {
-              merged.set(id, change.expense);
+    void this.firebase
+      .getFirestore()
+      .then(async (firestore) => {
+        if (!firestore || this.userId !== userId) {
+          return;
+        }
+        const { collection, onSnapshot } = await import('firebase/firestore');
+        this.unsubscribeExpenses = onSnapshot(
+          collection(firestore, 'users', userId, 'expenses'),
+          (snapshot) => {
+            const cloudExpenses = snapshot.docs.map((entry) =>
+              this.normalizeExpense({ ...entry.data(), id: entry.id } as ExpenseItem),
+            );
+            const pending = new Map(this.pendingChanges);
+            const merged = new Map(cloudExpenses.map((expense) => [expense.id, expense]));
+            for (const [id, change] of pending) {
+              if (change.type === 'delete') {
+                merged.delete(id);
+              } else if (change.expense) {
+                merged.set(id, change.expense);
+              }
             }
-          }
-          this.expenses.set([...merged.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-          this.persistExpenses(this.expenses());
-          this.syncStatus.set(pending.size ? 'Syncing changes' : 'Synced');
-          void this.syncPendingChanges();
-        },
-        () => {
-          this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
-          this.scheduleSyncRetry();
-        },
-      );
-      }).catch(() => {
+            this.expenses.set([...merged.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+            this.persistExpenses(this.expenses());
+            this.syncStatus.set(pending.size ? 'Syncing changes' : 'Synced');
+            void this.syncPendingChanges();
+          },
+          () => {
+            this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
+            this.scheduleSyncRetry();
+          },
+        );
+      })
+      .catch(() => {
         this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
         this.scheduleSyncRetry();
       });
@@ -301,9 +308,9 @@ export class ExpenseService {
           this.persistPendingChanges();
         }
       }
-      this.syncStatus.set('Synced');
-    } catch (e){
-      console.log('Sync Error: ', e)
+      this.syncStatus.set('Online');
+    } catch (e) {
+      console.log('Sync Error: ', e);
       this.syncStatus.set('Sync failed: Firebase unavailable; changes are saved locally');
       this.scheduleSyncRetry();
     } finally {
@@ -343,21 +350,29 @@ export class ExpenseService {
 
       const stored: unknown = JSON.parse(raw);
       if (typeof stored === 'number') {
-        return { amount: stored, payAmounts: [stored], frequency: 'monthly', nextPayDate: this.defaultIncomeProfile().nextPayDate };
+        return {
+          amount: stored,
+          payAmounts: [stored],
+          frequency: 'monthly',
+          nextPayDate: this.defaultIncomeProfile().nextPayDate,
+        };
       }
 
       if (typeof stored === 'object' && stored !== null && 'amount' in stored) {
         const profile = stored as Partial<IncomeProfile>;
         const frequency = ['weekly', 'biweekly', 'twice-monthly', 'monthly'].includes(String(profile.frequency))
-          ? profile.frequency as IncomeProfile['frequency']
+          ? (profile.frequency as IncomeProfile['frequency'])
           : 'monthly';
         const candidate: IncomeProfile = {
           amount: Number(profile.amount) || 0,
           payAmounts: Array.isArray(profile.payAmounts)
-            ? profile.payAmounts.map((amount) => Number(amount)).filter((amount) => Number.isFinite(amount) && amount >= 0)
+            ? profile.payAmounts
+                .map((amount) => Number(amount))
+                .filter((amount) => Number.isFinite(amount) && amount >= 0)
             : undefined,
           frequency,
-          nextPayDate: typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
+          nextPayDate:
+            typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
         };
         const payAmounts = payAmountsForProfile(candidate);
         return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };

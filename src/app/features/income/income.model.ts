@@ -1,11 +1,6 @@
-export type IncomeFrequency = 'weekly' | 'biweekly' | 'twice-monthly' | 'monthly';
+import type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
 
-export interface IncomeProfile {
-  amount: number;
-  payAmounts?: number[];
-  frequency: IncomeFrequency;
-  nextPayDate: string;
-}
+export type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
 
 const PAY_PERIODS_PER_YEAR: Record<IncomeFrequency, number> = {
   weekly: 52,
@@ -40,13 +35,22 @@ export function averagePayAmount(amounts: number[]): number {
   return validAmounts.length ? validAmounts.reduce((total, amount) => total + amount, 0) / validAmounts.length : 0;
 }
 
+export function additionalIncomeForMonth(streams: IncomeStream[], month = new Date()): number {
+  const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+  const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999);
+  return streams.reduce((total, stream) => {
+    const startDate = new Date(`${stream.date}T00:00:00`);
+    if (Number.isNaN(startDate.getTime()) || startDate > monthEnd) return total;
+    if (stream.repeatsMonthly || (startDate >= monthStart && startDate <= monthEnd)) {
+      return total + (Number(stream.amount) > 0 ? Number(stream.amount) : 0);
+    }
+    return total;
+  }, 0);
+}
+
 export function toMonthlyIncome(profile: IncomeProfile): number {
-  const amount = profile.payAmounts?.length
-    ? averagePayAmount(payAmountsForProfile(profile))
-    : Number(profile.amount);
-  return Number.isFinite(amount) && amount > 0
-    ? amount * PAY_PERIODS_PER_YEAR[profile.frequency] / 12
-    : 0;
+  const amount = profile.payAmounts?.length ? averagePayAmount(payAmountsForProfile(profile)) : Number(profile.amount);
+  return Number.isFinite(amount) && amount > 0 ? (amount * PAY_PERIODS_PER_YEAR[profile.frequency]) / 12 : 0;
 }
 
 export function toLocalDateInputValue(date: Date): string {

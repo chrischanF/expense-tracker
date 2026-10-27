@@ -1,0 +1,144 @@
+<aside
+  class="sidebar"
+  aria-label="Main navigation"
+>
+  <a
+    class="brand"
+    routerLink="/dashboard"
+    aria-label="PennyWise home"
+  >
+    <span
+      class="brand-mark"
+      aria-hidden="true"
+      >P</span
+    >
+    <span>Penny<span class="brand-period">Wise.</span></span>
+  </a>
+
+  <div class="sidebar-label">Workspace</div>
+  <nav class="main-nav">
+    <a
+      class="nav-link"
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >⌂</span
+      >Overview</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/transactions"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >≡</span
+      >Transactions</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/analytics"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >▥</span
+      >Analytics</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/income"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >↗</span
+      >Income</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/recurring"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >◷</span
+      >Recurring</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/budgets"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >▤</span
+      >Budgets</a
+    >
+    <a
+      class="nav-link"
+      routerLink="/goals"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      ><span
+        class="nav-icon"
+        aria-hidden="true"
+        >◎</span
+      >Goals</a
+    >
+  </nav>
+
+  <a
+    class="sidebar-add"
+    routerLink="/transactions"
+    [queryParams]="{ action: 'add' }"
+    ><span aria-hidden="true">+</span> Add expense</a
+  >
+
+  <div class="sidebar-bottom">
+    <div class="sync-indicator">
+      <span
+        class="status-dot"
+        [class.is-offline]="!isOnline()"
+      ></span>
+      <span>{{ syncStatus() }}</span>
+    </div>
+    <div class="profile-row">
+      <span
+        class="avatar"
+        aria-hidden="true"
+        >{{ currentUser() ? currentUser()?.displayName?.charAt(0) : 'G' }}</span
+      >
+      <span class="profile-name">{{ currentUser()?.displayName || currentUser()?.email || 'Guest account' }}</span>
+      @if (currentUser()) {
+        <button
+          type="button"
+          class="profile-action"
+          aria-label="Sign out"
+          title="Sign out"
+          (click)="signOut()"
+        >
+          ↗
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="profile-action"
+          aria-label="Sign in with Google"
+          title="Sign in with Google"
+          (click)="signIn()"
+        >
+          ↗
+        </button>
+      }
+    </div>
+  </div>
+</aside>

@@ -77,7 +77,7 @@ export class TourService {
     return [
       {
         element: '.main-nav',
-        popover: { title: 'Your finance workspace', description: 'Move between your overview, transactions, insights, income, recurring bills, budgets, and savings goals.' },
+        popover: { title: 'Your finance workspace', description: 'Move between your overview, transactions, insights, fixed and other income, recurring bills, budgets, and savings goals.' },
       },
       {
         element: '.page-intro',
@@ -85,7 +85,7 @@ export class TourService {
       },
       {
         element: '.sidebar-add',
-        popover: { title: 'Record an expense', description: 'Add a transaction here. Active recurring commitments are also added to your ledger automatically on their due day.' },
+        popover: { title: 'Record an expense', description: 'Add a transaction here, then use a receipt photo or voice capture to prefill its details. Active recurring commitments are added on their due day.' },
       },
       {
         element: '[data-tour="global-tools"]',
@@ -101,13 +101,15 @@ export class TourService {
   private pageSteps(route: string): DriveStep[] {
     const steps: Record<string, DriveStep[]> = {
       '/dashboard': [
-        { element: '.stats-grid', popover: { title: 'Monthly overview', description: 'Review income, spending, remaining balance, and your next payday at a glance.' } },
+        { element: '.stats-grid', popover: { title: 'Monthly overview', description: 'Review fixed and secondary income, spending, remaining balance, and your next payday.' } },
+        { element: '.planning-summary-grid', popover: { title: 'Safe to spend and bill reminders', description: 'See a daily or weekly allowance after bills and savings, plus recurring bills due in the next seven days. Browser alerts are optional.' } },
         { element: '.dashboard-budgets', popover: { title: 'Budget progress', description: 'Category progress changes color as spending approaches or exceeds each monthly limit.' } },
-        { element: '.dashboard-grid', popover: { title: 'Recent activity and income', description: 'Check recent expenses and the income schedule used for your monthly baseline.' } },
+        { element: '.dashboard-grid', popover: { title: 'Recent activity and income', description: 'Check recent expenses and your fixed pay schedule. Other income is included in this month’s baseline.' } },
       ],
       '/transactions': [
-        { element: '.page-intro', popover: { title: 'Manage transactions', description: 'Add an expense to the ledger or edit existing entries.' } },
-        { element: '.transaction-tools', popover: { title: 'Filter and export', description: 'Choose a date range, then export the visible transaction list as CSV.' } },
+        { element: '.page-intro', popover: { title: 'Manage transactions', description: 'Add or edit an expense. The form supports merchant details, individual currencies, receipt photos, and voice capture.' } },
+        { element: '.capture-controls', popover: { title: 'Capture an expense', description: 'Scan a receipt or speak a shorthand note. Recognition fills the form for you to review; it never saves automatically.' } },
+        { element: '.transaction-tools', popover: { title: 'Filter and export', description: 'Choose a date range, then export the visible transaction list with original and base-currency amounts as CSV.' } },
         { element: '.transactions-panel', popover: { title: 'Your ledger', description: 'Review, edit, or remove recorded transactions here.' } },
       ],
       '/analytics': [
@@ -115,8 +117,9 @@ export class TourService {
         { element: '.analytics-grid', popover: { title: 'Spending patterns', description: 'Explore the category breakdown and switch the trend between the last 30 days and 12 months.' } },
       ],
       '/income': [
-        { element: '.income-form', popover: { title: 'Set your income schedule', description: 'Enter your pay amount, frequency, and next payday to establish a monthly baseline.' } },
-        { element: '.income-projection', popover: { title: 'Monthly projection', description: 'This estimate normalizes your pay schedule across a full year.' } },
+        { element: '.income-form', popover: { title: 'Set your fixed pay schedule', description: 'Enter a separate amount for each typical paycheck, choose its frequency, and set your next payday.' } },
+        { element: '.income-projection', popover: { title: 'Monthly projection', description: 'The fixed-pay estimate uses your average paycheck across a full year.' } },
+        { element: '.income-streams', popover: { title: 'Track other income', description: 'Add freelance work, dividends, gifts, bonuses, or asset sales. One-time income counts only in its received month; repeating streams count monthly from their start date.' } },
       ],
       '/recurring': [
         { element: '.recurring-editor', popover: { title: 'Add a monthly commitment', description: 'Set the expected amount, category, payment source, and day of the month.' } },

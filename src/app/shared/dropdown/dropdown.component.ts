@@ -1,9 +1,16 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostListener, Input, Output, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  Output,
+  inject,
+} from '@angular/core';
+import type { DropdownOption } from '../../types/dropdown.types';
 
-export interface DropdownOption {
-  value: string;
-  label: string;
-}
+export type { DropdownOption } from '../../types/dropdown.types';
 
 @Component({
   selector: 'app-dropdown',
@@ -42,7 +49,10 @@ export class DropdownComponent {
 
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
-      this.activeIndex = Math.max(0, this.options.findIndex((option) => option.value === this.value));
+      this.activeIndex = Math.max(
+        0,
+        this.options.findIndex((option) => option.value === this.value),
+      );
     }
   }
 
@@ -51,7 +61,10 @@ export class DropdownComponent {
       event.preventDefault();
       if (!this.isOpen) {
         this.isOpen = true;
-        this.activeIndex = Math.max(0, this.options.findIndex((option) => option.value === this.value));
+        this.activeIndex = Math.max(
+          0,
+          this.options.findIndex((option) => option.value === this.value),
+        );
       } else if (this.options.length) {
         const direction = event.key === 'ArrowDown' ? 1 : -1;
         this.activeIndex = (this.activeIndex + direction + this.options.length) % this.options.length;

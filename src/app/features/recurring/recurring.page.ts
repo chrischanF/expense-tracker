@@ -3,8 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { PlanningService } from '../../services/planning.service';
-import { EXPENSE_CATEGORIES, RecurringTransaction } from '../../services/planning.model';
-import { DropdownComponent, type DropdownOption } from '../../shared/dropdown/dropdown.component';
+import { EXPENSE_CATEGORIES } from '../../services/planning.model';
+import type { RecurringTransaction } from '../../types/planning.types';
+import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import type { DropdownOption } from '../../types/dropdown.types';
 
 @Component({
   selector: 'app-recurring-page',
@@ -19,11 +21,21 @@ export class RecurringPage {
   readonly exchangeRates = inject(ExchangeRateService);
   readonly items = this.planning.recurringTransactions;
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));
-  readonly sources: DropdownOption[] = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Other']
-    .map((source) => ({ value: source, label: source }));
-  readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({ value: currency, label: currency })));
-  readonly activeTotal = computed(() => this.items().filter((item) => item.active).reduce((total, item) =>
-    total + (this.exchangeRates.toBase(item.amount, item.currency || this.preferences.currency()) ?? 0), 0));
+  readonly sources: DropdownOption[] = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Other'].map(
+    (source) => ({ value: source, label: source }),
+  );
+  readonly currencyOptions = computed<DropdownOption[]>(() =>
+    this.preferences.currencyOptions.map((currency) => ({ value: currency, label: currency })),
+  );
+  readonly activeTotal = computed(() =>
+    this.items()
+      .filter((item) => item.active)
+      .reduce(
+        (total, item) =>
+          total + (this.exchangeRates.toBase(item.amount, item.currency || this.preferences.currency()) ?? 0),
+        0,
+      ),
+  );
 
   readonly editingId = signal<string | null>(null);
   readonly name = signal('');

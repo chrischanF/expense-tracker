@@ -1,51 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { DropdownComponent, type DropdownOption } from './shared/dropdown/dropdown.component';
-import { AuthService } from './services/auth.service';
-import { ExpenseService } from './services/expense.service';
-import { FirebaseService } from './services/firebase.service';
-import { AppPreferencesService } from './services/app-preferences.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { PlanningService } from './services/planning.service';
-import { TourService } from './services/tour.service';
 import { BillReminderService } from './services/bill-reminder.service';
+import { SidebarComponent } from './layout/sidebar/sidebar.component';
+import { WorkspaceComponent } from './layout/workspace/workspace.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, DropdownComponent],
+  imports: [SidebarComponent, WorkspaceComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
-  private readonly authService = inject(AuthService);
-  private readonly firebaseService = inject(FirebaseService);
-  private readonly expenseService = inject(ExpenseService);
   private readonly planningService = inject(PlanningService);
-  private readonly tourService = inject(TourService);
   private readonly billReminderService = inject(BillReminderService);
-  readonly preferences = inject(AppPreferencesService);
-  readonly currencyOptions = computed<DropdownOption[]>(() => this.preferences.currencyOptions.map((currency) => ({
-    value: currency,
-    label: currency,
-  })));
-
-  readonly currentUser = this.authService.currentUser;
-  readonly authError = this.authService.errorMessage;
-  readonly syncStatus = this.expenseService.syncStatus;
-  readonly isOnline = this.firebaseService.isOnline;
-
-  signIn(): void {
-    void this.authService.signInWithGoogle();
-  }
-
-  signOut(): void {
-    void this.authService.signOut();
-  }
-
-  toggleTheme(): void {
-    this.preferences.toggleTheme();
-  }
-
-  startPageTour(): void {
-    this.tourService.startPageTour();
-  }
 }

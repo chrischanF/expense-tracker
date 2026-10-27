@@ -1,0 +1,238 @@
+:host {
+  display: block;
+}
+
+.income-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.income-streams {
+  margin-top: 16px;
+}
+
+.income-stream-total {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 0.67rem;
+  text-align: right;
+}
+
+.income-stream-total strong {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.income-stream-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 13px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line);
+}
+
+.income-stream-form > label,
+.income-form label {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.income-stream-form input:not([type='checkbox']),
+.income-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: 0;
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.income-stream-form input:not([type='checkbox']):focus,
+.income-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.income-stream-form .input-with-prefix,
+.income-form .input-with-prefix {
+  min-height: 42px;
+}
+
+.income-stream-form .input-with-prefix input,
+.income-form .input-with-prefix input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.income-stream-form .monthly-repeat-option {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.income-stream-form .monthly-repeat-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.income-stream-submit,
+.income-submit-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.income-stream-list {
+  display: grid;
+}
+
+.income-stream-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.income-stream-row:last-child {
+  border-bottom: 0;
+}
+
+.income-stream-description {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.income-stream-description strong,
+.income-stream-amount {
+  color: var(--text);
+  font-size: 0.77rem;
+}
+
+.income-stream-description span {
+  color: var(--muted);
+  font-size: 0.67rem;
+}
+
+.income-stream-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.income-editor {
+  padding: 22px;
+}
+
+.income-form {
+  display: grid;
+  gap: 17px;
+}
+
+.income-form .input-with-prefix {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-raised);
+}
+
+.income-form .input-with-prefix:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.income-form .input-with-prefix > span {
+  padding-left: 11px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.field-hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.income-submit-row {
+  gap: 12px;
+}
+
+.saved-message {
+  color: var(--positive);
+  font-size: 0.72rem;
+}
+
+.income-projection {
+  padding: 19px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+.income-projection .section-kicker {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.projection-amount {
+  margin: 25px 0 3px;
+  font-size: 2rem;
+  font-weight: 720;
+}
+
+.projection-caption {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+}
+
+.projection-breakdown {
+  display: grid;
+  gap: 8px;
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.projection-breakdown span {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.7rem;
+}
+
+.projection-breakdown strong {
+  font-size: 0.85rem;
+}
+
+@media (min-width: 600px) {
+  .income-stream-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 901px) {
+  .income-page-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.65fr);
+  }
+}

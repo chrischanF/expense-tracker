@@ -1,0 +1,345 @@
+:host {
+  display: block;
+}
+
+.income-stat {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.income-stat p,
+.income-stat span {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.income-stat strong {
+  color: #fff;
+}
+
+.stat-card.budget-watch {
+  border-color: color-mix(in srgb, var(--warning) 38%, var(--line));
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+}
+
+.stat-card.budget-watch strong {
+  color: var(--warning);
+}
+
+.stat-card.budget-critical,
+.stat-card.budget-over {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+  background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+}
+
+.stat-card.budget-critical strong,
+.stat-card.budget-over strong {
+  color: var(--danger);
+}
+
+.remaining-value {
+  color: var(--positive);
+}
+
+.date-stat {
+  font-size: 1.38rem !important;
+}
+
+.dashboard-grid,
+.planning-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.dashboard-panel {
+  min-width: 0;
+  padding: 21px;
+}
+
+.dashboard-budgets {
+  margin-top: 16px;
+}
+
+.dashboard-budget-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.dashboard-budget-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dashboard-budget-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-budget-heading strong {
+  color: var(--text);
+  font-size: 0.74rem;
+}
+
+.dashboard-budget-heading span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.safe-spend-panel,
+.bill-reminders-panel {
+  min-width: 0;
+}
+
+.safe-spend-panel .panel-heading,
+.bill-reminders-panel .panel-heading,
+.dashboard-panel .panel-heading {
+  margin-bottom: 12px;
+}
+
+.segmented-control {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+}
+
+.segmented-control button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.66rem;
+}
+
+.segmented-control button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.safe-spend-amount {
+  display: block;
+  margin-top: 8px;
+  color: var(--accent-strong);
+  font-size: 2rem;
+  font-weight: 720;
+}
+
+.safe-spend-caption {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.safe-spend-note,
+.rate-warning {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.rate-warning {
+  color: var(--warning);
+}
+
+.bill-reminder-list {
+  display: grid;
+}
+
+.bill-reminder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bill-reminder-row:last-child {
+  border-bottom: 0;
+}
+
+.bill-reminder-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+.bill-reminder-row strong {
+  color: var(--text);
+  font-size: 0.74rem;
+}
+
+.bill-reminder-row span {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.bill-reminder-due {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.notification-enabled {
+  color: var(--positive);
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.text-link {
+  color: var(--accent-strong);
+  font-size: 0.74rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+.recent-list {
+  display: grid;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 67px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recent-item:last-child {
+  border-bottom: 0;
+}
+
+.category-mark {
+  display: grid;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.recent-description {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.recent-description strong {
+  color: var(--text);
+  font-size: 0.77rem;
+}
+
+.recent-description span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-amount {
+  color: var(--text);
+  font-size: 0.77rem;
+  white-space: nowrap;
+}
+
+.empty-panel {
+  display: grid;
+  min-height: 150px;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+}
+
+.empty-panel p {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.income-summary-amount {
+  margin-top: 21px;
+  color: var(--text);
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.income-summary-amount span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.income-summary-copy {
+  margin: 7px 0 20px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.schedule-date {
+  display: grid;
+  gap: 5px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+
+.schedule-date span {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.schedule-date strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.schedule-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  text-decoration: none;
+}
+
+@media (min-width: 600px) {
+  .dashboard-budget-list {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px 22px;
+  }
+}
+
+@media (min-width: 761px) {
+  .planning-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (min-width: 901px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+    gap: 16px;
+  }
+}

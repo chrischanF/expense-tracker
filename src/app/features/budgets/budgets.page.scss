@@ -1,6 +1,6 @@
 .budget-layout {
   display: grid;
-  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 16px;
 }
@@ -85,8 +85,8 @@
   text-align: right;
 }
 
-@media (max-width: 850px) {
+@media (min-width: 851px) {
   .budget-layout {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
   }
 }

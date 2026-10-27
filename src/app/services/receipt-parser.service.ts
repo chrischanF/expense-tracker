@@ -1,16 +1,15 @@
 import { Injectable } from '@angular/core';
+import type { ParsedExpenseDraft } from '../types/receipt.types';
 
-export interface ParsedExpenseDraft {
-  amount: number | null;
-  merchant: string;
-  category: string;
-  currency: string | null;
-}
+export type { ParsedExpenseDraft } from '../types/receipt.types';
 
 @Injectable({ providedIn: 'root' })
 export class ReceiptParserService {
   parseText(text: string): ParsedExpenseDraft {
-    const lines = text.split(/[\r\n]+/).map((line) => line.trim()).filter(Boolean);
+    const lines = text
+      .split(/[\r\n]+/)
+      .map((line) => line.trim())
+      .filter(Boolean);
     const totalLine = lines.find((line) => /\b(total|amount due|grand total|paid)\b/i.test(line));
     const amount = this.parseAmount(totalLine ?? text);
     const merchant = this.parseMerchant(lines, text);
@@ -49,10 +48,11 @@ export class ReceiptParserService {
   private parseMerchant(lines: string[], text: string): string {
     const spoken = text.match(/\b(?:at|from|@)\s+([^,\n]+?)(?:\s+(?:for|costs?|total(?:ing)?)\b|[,\n]|$)/i);
     if (spoken?.[1]) return spoken[1].trim().replace(/[.]+$/, '');
-    const candidate = lines.find((line) =>
-      !/\b(total|subtotal|tax|change|cash|visa|mastercard|receipt|invoice|date|time|thank you)\b/i.test(line)
-      && !/^[$€£¥₹₱\d]/.test(line)
-      && line.length >= 2,
+    const candidate = lines.find(
+      (line) =>
+        !/\b(total|subtotal|tax|change|cash|visa|mastercard|receipt|invoice|date|time|thank you)\b/i.test(line) &&
+        !/^[$€£¥₹₱\d]/.test(line) &&
+        line.length >= 2,
     );
     return candidate?.replace(/\s{2,}/g, ' ') ?? '';
   }

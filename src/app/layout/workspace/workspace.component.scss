@@ -1,0 +1,168 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.workspace {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 25px 18px 18px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent-strong);
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.45rem;
+  font-weight: 680;
+}
+
+.header-date {
+  max-width: 240px;
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.header-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.currency-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.currency-picker app-dropdown {
+  width: auto;
+  min-width: 55px;
+}
+
+.theme-toggle,
+.tour-button {
+  display: inline-flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.theme-toggle {
+  width: 34px;
+  flex: 0 0 34px;
+}
+
+.tour-button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 9px;
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.theme-toggle:hover,
+.tour-button:hover {
+  border-color: var(--accent);
+  background: var(--surface-soft);
+}
+
+.tour-icon {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.66rem;
+}
+
+.auth-error {
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+  color: var(--danger);
+  font-size: 0.82rem;
+}
+
+.page-footer {
+  padding: 24px 2px 6px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+@media (min-width: 761px) {
+  .workspace {
+    padding: 38px clamp(24px, 1vw, 64px) 24px;
+  }
+
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  .page-header h1 {
+    font-size: 1.85rem;
+  }
+
+  .header-date {
+    max-width: none;
+    font-size: 0.88rem;
+  }
+
+  .header-tools {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .currency-picker {
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+}

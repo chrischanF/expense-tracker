@@ -1,19 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { AppPreferencesService } from './app-preferences.service';
-
-interface ExchangeRateResponse {
-  result: string;
-  base_code: string;
-  time_last_update_unix: number;
-  rates: Record<string, number>;
-}
-
-interface CachedRates {
-  base: string;
-  updatedAt: number;
-  rates: Record<string, number>;
-}
+import type { CachedRates, ExchangeRateResponse } from '../types/exchange-rate.types';
 
 export function convertAmountToBase(
   amount: number,
@@ -76,7 +64,7 @@ export class ExchangeRateService {
     try {
       const response = await fetch(`https://open.er-api.com/v6/latest/${encodeURIComponent(base)}`);
       if (!response.ok) throw new Error('Exchange-rate request failed');
-      const data = await response.json() as ExchangeRateResponse;
+      const data = (await response.json()) as ExchangeRateResponse;
       if (data.result !== 'success' || data.base_code !== base || !data.rates) {
         throw new Error('Exchange-rate response was invalid');
       }
@@ -86,7 +74,8 @@ export class ExchangeRateService {
       this.ratesUpdatedAt.set(updatedAt);
       this.writeCache({ base, rates: data.rates, updatedAt });
     } catch {
-      if (!cached && this.requestedBase === base) this.error.set('Live exchange rates are unavailable. Original amounts are still saved.');
+      if (!cached && this.requestedBase === base)
+        this.error.set('Live exchange rates are unavailable. Original amounts are still saved.');
     } finally {
       if (this.requestedBase === base) this.isLoading.set(false);
     }
