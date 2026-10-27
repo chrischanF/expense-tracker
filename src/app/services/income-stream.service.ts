@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { additionalIncomeForMonth } from '../features/income/income.model';
 import type { IncomeStream } from '../types/income.types';
+import { normalizeDateToIsoUtc } from '../utils/date-normalization';
 
 const STORAGE_KEY = 'expense-tracker.demo-income-streams';
 
@@ -17,14 +18,24 @@ export class IncomeStreamService {
       id: crypto.randomUUID(),
       name: stream.name.trim(),
       amount: Number(stream.amount),
-      createdAt: new Date().toISOString(),
+      date: normalizeDateToIsoUtc(stream.date),
+      createdAt: normalizeDateToIsoUtc(new Date()),
     };
     this.write([...this.streams(), record]);
   }
 
   update(stream: IncomeStream): void {
     this.write(
-      this.streams().map((entry) => (entry.id === stream.id ? { ...stream, name: stream.name.trim() } : entry)),
+      this.streams().map((entry) =>
+        entry.id === stream.id
+          ? {
+              ...stream,
+              name: stream.name.trim(),
+              date: normalizeDateToIsoUtc(stream.date),
+              createdAt: normalizeDateToIsoUtc(stream.createdAt),
+            }
+          : entry,
+      ),
     );
   }
 
@@ -37,7 +48,13 @@ export class IncomeStreamService {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       const saved: unknown = raw ? JSON.parse(raw) : [];
-      return Array.isArray(saved) ? (saved as IncomeStream[]) : [];
+      return Array.isArray(saved)
+        ? (saved as IncomeStream[]).map((stream) => ({
+            ...stream,
+            date: normalizeDateToIsoUtc(stream.date),
+            createdAt: normalizeDateToIsoUtc(stream.createdAt),
+          }))
+        : [];
     } catch {
       return [];
     }

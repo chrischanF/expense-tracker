@@ -10,10 +10,12 @@ import { BillReminderService } from '../../services/bill-reminder.service';
 import { PlanningService } from '../../services/planning.service';
 import { calculateSafeToSpend, getUpcomingBills } from '../../services/planning.model';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
+import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [BudgetProgressComponent, DatePipe, RouterLink],
+  imports: [BudgetProgressComponent, DatePipe, LoaderComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
@@ -35,6 +37,18 @@ export class DashboardPage {
   private readonly planning = inject(PlanningService);
   readonly exchangeRates = inject(ExchangeRateService);
   readonly billReminders = inject(BillReminderService);
+  readonly firestoreBusy = computed(
+    () =>
+      this.expensesService.isLoading() ||
+      this.expensesService.isSaving() ||
+      this.planning.isLoading() ||
+      this.planning.isSaving(),
+  );
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expensesService.isLoading() || this.planning.isLoading()
+      ? 'Loading your account data…'
+      : 'Syncing your changes…',
+  );
 
   readonly expenses = this.expensesService.expenses;
   readonly incomeProfile = this.expensesService.incomeProfile;
@@ -116,7 +130,7 @@ export class DashboardPage {
         .filter((expense) => expense.recurringMonth)
         .map((expense) => `${expense.recurringId}:${expense.recurringMonth}`),
     );
-    return bills.filter((bill) => !recorded.has(`${bill.id}:${bill.dueDate.slice(0, 7)}`));
+    return bills.filter((bill) => !recorded.has(`${bill.id}:${toLocalDateInputValue(bill.dueDate).slice(0, 7)}`));
   });
 
   formatCurrency(value: number): string {

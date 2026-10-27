@@ -8,6 +8,7 @@ import {
 } from '../features/income/income.model';
 import { AuthService } from './auth.service';
 import { FirebaseService } from './firebase.service';
+import { normalizeDateToIsoUtc } from '../utils/date-normalization';
 import type { IncomeProfile } from '../types/income.types';
 import type { ExpenseItem } from '../types/analytics.types';
 import type { PendingExpenseChange } from '../types/expense.types';
@@ -26,6 +27,8 @@ export class ExpenseService {
   readonly incomeProfile = signal<IncomeProfile>(this.readIncomeProfile());
   readonly monthlyIncome = computed(() => toMonthlyIncome(this.incomeProfile()));
   readonly syncStatus = signal('Local only');
+  readonly isLoading = signal(false);
+  readonly isSaving = signal(false);
 
   constructor(
     private readonly auth: AuthService,
@@ -45,7 +48,7 @@ export class ExpenseService {
       amount: averagePayAmount(payAmounts),
       payAmounts,
       frequency: profile.frequency,
-      nextPayDate: profile.nextPayDate,
+      nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate),
     };
     this.incomeProfile.set(next);
     this.writeIncomeProfile(next);
@@ -55,16 +58,17 @@ export class ExpenseService {
     expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'source'> & { source?: string },
     options: { id?: string; recurringId?: string; recurringMonth?: string } = {},
   ): void {
-    const draft: ExpenseItem = {
+    const draft = this.normalizeExpense({
       id: options.id ?? crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
+      createdAt: normalizeDateToIsoUtc(new Date()),
       ...expense,
+      date: normalizeDateToIsoUtc(expense.date),
       amount: Number(expense.amount) || 0,
       note: expense.note || '',
       category: expense.category || 'Other',
       source: expense.source?.trim() || 'Other',
       ...(options.recurringId ? { recurringId: options.recurringId, recurringMonth: options.recurringMonth } : {}),
-    };
+    });
 
     this.expenses.update((current) => {
       const next = [draft, ...current];
@@ -76,7 +80,7 @@ export class ExpenseService {
 
   updateExpense(id: string, expense: Partial<ExpenseItem>): void {
     this.expenses.update((current) => {
-      const next = current.map((item) => (item.id === id ? { ...item, ...expense } : item));
+      const next = current.map((item) => (item.id === id ? this.normalizeExpense({ ...item, ...expense }) : item));
       this.persistExpenses(next);
       const updated = next.find((item) => item.id === id);
       if (updated) {
@@ -97,6 +101,9 @@ export class ExpenseService {
 
   getExpensesByDateRange(range: 'all' | 'month' | '30d' | 'year'): ExpenseItem[] {
     const now = new Date();
+    const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thirtyDayStart = new Date(localToday);
+    thirtyDayStart.setDate(thirtyDayStart.getDate() - 29);
     const items = this.expenses();
 
     if (range === 'all') {
@@ -104,11 +111,12 @@ export class ExpenseService {
     }
 
     return items.filter((item) => {
-      const date = new Date(item.date);
-      const ms = now.getTime() - date.getTime();
+      const timestamp = new Date(item.date);
+      if (Number.isNaN(timestamp.getTime())) return false;
+      const date = new Date(timestamp.getFullYear(), timestamp.getMonth(), timestamp.getDate());
 
       if (range === '30d') {
-        return ms <= 30 * 24 * 60 * 60 * 1000 && ms >= 0;
+        return date >= thirtyDayStart && date <= localToday;
       }
 
       if (range === 'month') {
@@ -144,6 +152,8 @@ export class ExpenseService {
   private normalizeExpense(expense: ExpenseItem): ExpenseItem {
     return {
       ...expense,
+      date: normalizeDateToIsoUtc(expense.date),
+      createdAt: normalizeDateToIsoUtc(expense.createdAt),
       source: typeof expense.source === 'string' && expense.source.trim() ? expense.source.trim() : 'Other',
     };
   }
@@ -173,6 +183,8 @@ export class ExpenseService {
     }
     this.userId = userId;
     this.pendingChanges.clear();
+    this.isLoading.set(false);
+    this.isSaving.set(false);
 
     if (userId) {
       const accountKey = this.storageKey();
@@ -241,16 +253,20 @@ export class ExpenseService {
       return;
     }
 
+    this.isLoading.set(true);
     void this.firebase
       .getFirestore()
       .then(async (firestore) => {
         if (!firestore || this.userId !== userId) {
+          if (this.userId === userId) this.isLoading.set(false);
           return;
         }
         const { collection, onSnapshot } = await import('firebase/firestore');
         this.unsubscribeExpenses = onSnapshot(
           collection(firestore, 'users', userId, 'expenses'),
           (snapshot) => {
+            if (this.userId !== userId) return;
+            this.isLoading.set(false);
             const cloudExpenses = snapshot.docs.map((entry) =>
               this.normalizeExpense({ ...entry.data(), id: entry.id } as ExpenseItem),
             );
@@ -269,12 +285,14 @@ export class ExpenseService {
             void this.syncPendingChanges();
           },
           () => {
+            if (this.userId === userId) this.isLoading.set(false);
             this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
             this.scheduleSyncRetry();
           },
         );
       })
       .catch(() => {
+        if (this.userId === userId) this.isLoading.set(false);
         this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
         this.scheduleSyncRetry();
       });
@@ -288,8 +306,10 @@ export class ExpenseService {
       }
       return;
     }
+    if (!this.pendingChanges.size) return;
 
     this.syncInProgress = true;
+    this.isSaving.set(true);
     try {
       const firestore = await this.firebase.getFirestore();
       if (!firestore || this.userId !== userId) {
@@ -301,7 +321,7 @@ export class ExpenseService {
         if (change.type === 'delete') {
           await deleteDoc(expenseRef);
         } else if (change.expense) {
-          await setDoc(expenseRef, change.expense);
+          await setDoc(expenseRef, this.normalizeExpense(change.expense));
         }
         if (this.pendingChanges.get(id) === change) {
           this.pendingChanges.delete(id);
@@ -315,6 +335,7 @@ export class ExpenseService {
       this.scheduleSyncRetry();
     } finally {
       this.syncInProgress = false;
+      this.isSaving.set(false);
     }
   }
 
@@ -371,8 +392,9 @@ export class ExpenseService {
                 .filter((amount) => Number.isFinite(amount) && amount >= 0)
             : undefined,
           frequency,
-          nextPayDate:
+          nextPayDate: normalizeDateToIsoUtc(
             typeof profile.nextPayDate === 'string' ? profile.nextPayDate : this.defaultIncomeProfile().nextPayDate,
+          ),
         };
         const payAmounts = payAmountsForProfile(candidate);
         return { ...candidate, amount: averagePayAmount(payAmounts), payAmounts };
@@ -389,7 +411,7 @@ export class ExpenseService {
       amount: 50000,
       payAmounts: [50000],
       frequency: 'monthly',
-      nextPayDate: toLocalDateInputValue(new Date()),
+      nextPayDate: normalizeDateToIsoUtc(toLocalDateInputValue(new Date())),
     };
   }
 
@@ -399,7 +421,10 @@ export class ExpenseService {
     }
 
     try {
-      localStorage.setItem(this.incomeStorageKey, JSON.stringify(profile));
+      localStorage.setItem(
+        this.incomeStorageKey,
+        JSON.stringify({ ...profile, nextPayDate: normalizeDateToIsoUtc(profile.nextPayDate) }),
+      );
     } catch {
       this.syncStatus.set('Income is updated for this session, but browser storage is unavailable.');
     }

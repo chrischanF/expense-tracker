@@ -1,6 +1,8 @@
 import type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
+import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 export type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
+export { toLocalDateInputValue } from '../../utils/date-normalization';
 
 const PAY_PERIODS_PER_YEAR: Record<IncomeFrequency, number> = {
   weekly: 52,
@@ -39,7 +41,8 @@ export function additionalIncomeForMonth(streams: IncomeStream[], month = new Da
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999);
   return streams.reduce((total, stream) => {
-    const startDate = new Date(`${stream.date}T00:00:00`);
+    const dateInput = toLocalDateInputValue(stream.date);
+    const startDate = dateInput ? new Date(`${dateInput}T00:00:00`) : new Date(Number.NaN);
     if (Number.isNaN(startDate.getTime()) || startDate > monthEnd) return total;
     if (stream.repeatsMonthly || (startDate >= monthStart && startDate <= monthEnd)) {
       return total + (Number(stream.amount) > 0 ? Number(stream.amount) : 0);
@@ -51,8 +54,4 @@ export function additionalIncomeForMonth(streams: IncomeStream[], month = new Da
 export function toMonthlyIncome(profile: IncomeProfile): number {
   const amount = profile.payAmounts?.length ? averagePayAmount(payAmountsForProfile(profile)) : Number(profile.amount);
   return Number.isFinite(amount) && amount > 0 ? (amount * PAY_PERIODS_PER_YEAR[profile.frequency]) / 12 : 0;
-}
-
-export function toLocalDateInputValue(date: Date): string {
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }

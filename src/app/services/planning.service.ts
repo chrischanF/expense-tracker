@@ -21,12 +21,15 @@ export class PlanningService {
   private readonly preferences = inject(AppPreferencesService);
   private readonly pendingChanges = new Map<string, PendingPlanningChange>();
   private readonly unsubscribeCollections: Array<() => void> = [];
+  private readonly initialCollectionReads = new Set<PlanningCollection>();
   private userId: string | null = null;
   private syncInProgress = false;
 
   readonly recurringTransactions = signal<RecurringTransaction[]>(this.readLocal('guest', 'recurring'));
   readonly budgets = signal<CategoryBudget[]>(this.readLocal('guest', 'budgets'));
   readonly goals = signal<SavingsGoal[]>(this.readLocal('guest', 'goals'));
+  readonly isLoading = signal(false);
+  readonly isSaving = signal(false);
 
   constructor(
     private readonly auth: AuthService,
@@ -186,6 +189,9 @@ export class PlanningService {
     }
     this.userId = userId;
     this.pendingChanges.clear();
+    this.initialCollectionReads.clear();
+    this.isLoading.set(false);
+    this.isSaving.set(false);
 
     if (!userId) {
       this.recurringTransactions.set(this.readLocal('guest', 'recurring'));
@@ -216,23 +222,51 @@ export class PlanningService {
     if (!this.firebase.isConfigured) {
       return;
     }
-    const firestore = await this.firebase.getFirestore();
+    for (const name of ['recurring', 'budgets', 'goals'] as const) {
+      this.initialCollectionReads.add(name);
+    }
+    this.isLoading.set(true);
+    let firestore: Firestore | null;
+    try {
+      firestore = await this.firebase.getFirestore();
+    } catch {
+      if (this.userId === userId) {
+        this.initialCollectionReads.clear();
+        this.isLoading.set(false);
+      }
+      return;
+    }
     if (!firestore || this.userId !== userId) {
+      if (this.userId === userId) {
+        this.initialCollectionReads.clear();
+        this.isLoading.set(false);
+      }
       return;
     }
     const { collection, onSnapshot } = await import('firebase/firestore');
     for (const name of ['recurring', 'budgets', 'goals'] as const) {
-      const unsubscribe = onSnapshot(collection(firestore, 'users', userId, name), (snapshot) => {
-        const records = snapshot.docs.map((entry) => ({ ...entry.data(), id: entry.id }) as PlanningRecord);
-        const merged = new Map(records.map((record) => [record.id, record]));
-        for (const change of this.pendingChanges.values()) {
-          if (change.collection !== name) continue;
-          if (change.type === 'delete') merged.delete(change.id);
-          else if (change.record) merged.set(change.id, change.record);
-        }
-        this.writeCollection(name, [...merged.values()]);
-        void this.syncPendingChanges();
-      });
+      const unsubscribe = onSnapshot(
+        collection(firestore, 'users', userId, name),
+        (snapshot) => {
+          if (this.userId !== userId) return;
+          this.initialCollectionReads.delete(name);
+          this.isLoading.set(this.initialCollectionReads.size > 0);
+          const records = snapshot.docs.map((entry) => ({ ...entry.data(), id: entry.id }) as PlanningRecord);
+          const merged = new Map(records.map((record) => [record.id, record]));
+          for (const change of this.pendingChanges.values()) {
+            if (change.collection !== name) continue;
+            if (change.type === 'delete') merged.delete(change.id);
+            else if (change.record) merged.set(change.id, change.record);
+          }
+          this.writeCollection(name, [...merged.values()]);
+          void this.syncPendingChanges();
+        },
+        () => {
+          if (this.userId !== userId) return;
+          this.initialCollectionReads.delete(name);
+          this.isLoading.set(this.initialCollectionReads.size > 0);
+        },
+      );
       this.unsubscribeCollections.push(unsubscribe);
     }
   }
@@ -242,7 +276,9 @@ export class PlanningService {
     if (this.syncInProgress || !userId || !this.firebase.isConfigured || !this.firebase.isOnline()) {
       return;
     }
+    if (!this.pendingChanges.size) return;
     this.syncInProgress = true;
+    this.isSaving.set(true);
     try {
       const firestore = await this.firebase.getFirestore();
       if (!firestore || this.userId !== userId) return;
@@ -251,6 +287,7 @@ export class PlanningService {
       // Local storage remains authoritative until the next online sync attempt.
     } finally {
       this.syncInProgress = false;
+      this.isSaving.set(false);
     }
   }
 

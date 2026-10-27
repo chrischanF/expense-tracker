@@ -8,13 +8,15 @@ import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { ReceiptParserService } from '../../services/receipt-parser.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
 import type { ExpenseItem } from '../../types/analytics.types';
 import type { SpeechRecognitionConstructor } from '../../types/speech-recognition.types';
+import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-transactions-page',
-  imports: [DatePipe, FormsModule, DropdownComponent],
+  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transactions.page.html',
   styleUrl: './transactions.page.scss',
@@ -61,12 +63,16 @@ export class TransactionsPage {
   readonly amount = signal('');
   readonly category = signal('Food');
   readonly source = signal('Cash');
-  readonly expenseDate = signal(new Date().toISOString().slice(0, 10));
+  readonly expenseDate = signal(toLocalDateInputValue(new Date()));
   readonly note = signal('');
   readonly merchant = signal('');
   readonly currency = signal(this.preferences.currency());
   readonly captureStatus = signal('');
   readonly isCapturing = signal(false);
+  readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenseService.isLoading() ? 'Loading your transactions…' : 'Syncing your changes…',
+  );
   readonly currencyOptions = computed<DropdownOption[]>(() =>
     this.preferences.currencyOptions.map((currency) => ({
       value: currency,
@@ -88,7 +94,7 @@ export class TransactionsPage {
 
   exportCsv(): void {
     const rows = this.filteredExpenses().map((expense) => [
-      expense.date.slice(0, 10),
+      toLocalDateInputValue(expense.date),
       expense.merchant || '',
       expense.category,
       expense.source,
@@ -130,7 +136,7 @@ export class TransactionsPage {
     this.amount.set(String(expense.amount));
     this.category.set(expense.category || 'Other');
     this.source.set(expense.source || 'Other');
-    this.expenseDate.set(expense.date.slice(0, 10));
+    this.expenseDate.set(toLocalDateInputValue(expense.date));
     this.note.set(expense.note || '');
     this.merchant.set(expense.merchant || '');
     this.currency.set(expense.currency || this.preferences.currency());
@@ -154,7 +160,7 @@ export class TransactionsPage {
       source: this.source(),
       currency: this.currency(),
       merchant: this.merchant().trim(),
-      date: `${this.expenseDate()}T12:00:00.000Z`,
+      date: this.expenseDate(),
       note: this.note().trim(),
     };
     const editingId = this.editingExpenseId();
@@ -240,7 +246,7 @@ export class TransactionsPage {
     this.amount.set('');
     this.category.set('Food');
     this.source.set('Cash');
-    this.expenseDate.set(new Date().toISOString().slice(0, 10));
+    this.expenseDate.set(toLocalDateInputValue(new Date()));
     this.note.set('');
     this.merchant.set('');
     this.currency.set(this.preferences.currency());

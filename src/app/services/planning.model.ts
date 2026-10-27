@@ -1,5 +1,6 @@
 import type { BudgetStatus, RecurringTransaction, SafeToSpendPlan } from '../types/planning.types';
 import type { UpcomingBill } from '../types/planning.types';
+import { normalizeDateToIsoUtc } from '../utils/date-normalization';
 
 export type {
   BudgetStatus,
@@ -22,7 +23,7 @@ export function getBudgetStatus(spent: number, limit: number): BudgetStatus {
 export function recurringDateForMonth(year: number, month: number, dueDay: number): string {
   const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const day = Math.min(Math.max(1, Math.floor(dueDay)), lastDay);
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00:00.000Z`;
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export function calculateSafeToSpend(
@@ -57,7 +58,7 @@ export function getUpcomingBills(recurring: RecurringTransaction[], today = new 
         amount: item.amount,
         currency: item.currency,
         category: item.category,
-        dueDate: `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`,
+        dueDate: normalizeDateToIsoUtc(due),
         daysUntilDue,
       };
     })

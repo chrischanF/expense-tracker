@@ -6,11 +6,12 @@ import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
 
 @Component({
   selector: 'app-analytics-page',
-  imports: [BaseChartDirective, DropdownComponent],
+  imports: [BaseChartDirective, DropdownComponent, LoaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analytics.page.html',
   styleUrl: './analytics.page.scss',
@@ -20,6 +21,10 @@ export class AnalyticsPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly preferences = inject(AppPreferencesService);
   readonly exchangeRates = inject(ExchangeRateService);
+  readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenseService.isLoading() ? 'Loading your transactions…' : 'Syncing your changes…',
+  );
 
   private readonly palette = ['#168878', '#e3a23b', '#607f9b', '#d9755e', '#81a94c', '#9b7bb5'];
   readonly sourceFilter = signal('all');

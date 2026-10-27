@@ -1,3 +1,7 @@
+<app-loader
+  [active]="firestoreBusy()"
+  [message]="firestoreLoaderMessage()"
+/>
 <section class="page-intro">
   <div>
     <p class="section-kicker">Patterns and totals</p>
@@ -6,11 +10,19 @@
   </div>
   <label class="source-filter">
     <span>Payment source</span>
-    <app-dropdown [options]="sourceFilterOptions()" [value]="sourceFilter()" (valueChange)="sourceFilter.set($event)" ariaLabel="Filter analytics by payment source" />
+    <app-dropdown
+      [options]="sourceFilterOptions()"
+      [value]="sourceFilter()"
+      (valueChange)="sourceFilter.set($event)"
+      ariaLabel="Filter analytics by payment source"
+    />
   </label>
 </section>
 
-<section class="stats-grid analytics-stats" aria-label="Spending highlights">
+<section
+  class="stats-grid analytics-stats"
+  aria-label="Spending highlights"
+>
   <article class="stat-card">
     <p>Total recorded</p>
     <strong>{{ formatCurrency(totalSpent()) }}</strong>
@@ -30,18 +42,45 @@
 
 <section class="analytics-grid">
   <article class="panel analytics-panel">
-    <div class="panel-heading"><div><p class="section-kicker">Where it goes</p><h2>Spending by category</h2></div></div>
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">Where it goes</p>
+        <h2>Spending by category</h2>
+      </div>
+    </div>
     <div class="chart-wrap analytics-chart">
-      <canvas baseChart [data]="categoryChartData()" [options]="categoryChartOptions()" type="pie" aria-label="Spending by category"></canvas>
+      <canvas
+        baseChart
+        [data]="categoryChartData()"
+        [options]="categoryChartOptions()"
+        type="pie"
+        aria-label="Spending by category"
+      ></canvas>
     </div>
   </article>
   <article class="panel analytics-panel">
     <div class="panel-heading">
-      <div><p class="section-kicker">Over time</p><h2>{{ trendRange() === '30d' ? 'Daily spending' : 'Monthly spending' }}</h2></div>
-      <app-dropdown [options]="trendRangeOptions" [value]="trendRange()" (valueChange)="trendRange.set($event)" ariaLabel="Spending trend period" />
+      <div>
+        <p class="section-kicker">Over time</p>
+        <h2>{{ trendRange() === '30d' ? 'Daily spending' : 'Monthly spending' }}</h2>
+      </div>
+      <app-dropdown
+        [options]="trendRangeOptions"
+        [value]="trendRange()"
+        (valueChange)="trendRange.set($event)"
+        ariaLabel="Spending trend period"
+      />
     </div>
     <div class="chart-wrap analytics-chart">
-      <canvas baseChart [data]="trendChartData()" [options]="trendChartOptions()" type="line" [attr.aria-label]="trendRange() === '30d' ? 'Spending over the last 30 days' : 'Spending over the last 12 months'"></canvas>
+      <canvas
+        baseChart
+        [data]="trendChartData()"
+        [options]="trendChartOptions()"
+        type="line"
+        [attr.aria-label]="
+          trendRange() === '30d' ? 'Spending over the last 30 days' : 'Spending over the last 12 months'
+        "
+      ></canvas>
     </div>
   </article>
 </section>

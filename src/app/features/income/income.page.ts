@@ -6,12 +6,14 @@ import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { IncomeStreamService } from '../../services/income-stream.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
 import type { IncomeFrequency, IncomeProfile, IncomeStream } from '../../types/income.types';
+import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-income-page',
-  imports: [DatePipe, FormsModule, DropdownComponent],
+  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './income.page.html',
   styleUrl: './income.page.scss',
@@ -20,11 +22,15 @@ export class IncomePage {
   private readonly expenseService = inject(ExpenseService);
   private readonly incomeStreamService = inject(IncomeStreamService);
   readonly preferences = inject(AppPreferencesService);
+  readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenseService.isLoading() ? 'Loading your account data…' : 'Syncing your changes…',
+  );
   private readonly profile = this.expenseService.incomeProfile;
 
   readonly frequency = signal<IncomeFrequency>(this.profile().frequency);
   readonly payAmounts = signal(payAmountsForProfile(this.profile()));
-  readonly nextPayDate = signal(this.profile().nextPayDate);
+  readonly nextPayDate = signal(toLocalDateInputValue(this.profile().nextPayDate));
   readonly saved = signal(false);
   readonly streams = this.incomeStreamService.streams;
   readonly additionalIncomeThisMonth = this.incomeStreamService.currentMonthTotal;
@@ -40,7 +46,7 @@ export class IncomePage {
   readonly streamName = signal('');
   readonly streamType = signal('Freelance');
   readonly streamAmount = signal('');
-  readonly streamDate = signal(new Date().toISOString().slice(0, 10));
+  readonly streamDate = signal(toLocalDateInputValue(new Date()));
   readonly streamRepeatsMonthly = signal(false);
   readonly editingStreamId = signal<string | null>(null);
   readonly averagePayAmount = computed(() => averagePayAmount(this.payAmounts()));
@@ -129,7 +135,7 @@ export class IncomePage {
     this.streamName.set(stream.name);
     this.streamType.set(stream.type);
     this.streamAmount.set(String(stream.amount));
-    this.streamDate.set(stream.date);
+    this.streamDate.set(toLocalDateInputValue(stream.date));
     this.streamRepeatsMonthly.set(stream.repeatsMonthly);
   }
 
@@ -143,7 +149,7 @@ export class IncomePage {
     this.streamName.set('');
     this.streamType.set('Freelance');
     this.streamAmount.set('');
-    this.streamDate.set(new Date().toISOString().slice(0, 10));
+    this.streamDate.set(toLocalDateInputValue(new Date()));
     this.streamRepeatsMonthly.set(false);
   }
 }

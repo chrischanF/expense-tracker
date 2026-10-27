@@ -9,10 +9,11 @@ import { PlanningService } from '../../services/planning.service';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import type { DropdownOption } from '../../types/dropdown.types';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 
 @Component({
   selector: 'app-budgets-page',
-  imports: [BudgetProgressComponent, DropdownComponent, FormsModule],
+  imports: [BudgetProgressComponent, DropdownComponent, FormsModule, LoaderComponent],
   templateUrl: './budgets.page.html',
   styleUrl: './budgets.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +23,13 @@ export class BudgetsPage {
   private readonly expenses = inject(ExpenseService);
   readonly preferences = inject(AppPreferencesService);
   private readonly exchangeRates = inject(ExchangeRateService);
+  readonly firestoreBusy = computed(
+    () =>
+      this.expenses.isLoading() || this.expenses.isSaving() || this.planning.isLoading() || this.planning.isSaving(),
+  );
+  readonly firestoreLoaderMessage = computed(() =>
+    this.expenses.isLoading() || this.planning.isLoading() ? 'Loading your budgets…' : 'Syncing your changes…',
+  );
   readonly categories: DropdownOption[] = EXPENSE_CATEGORIES.map((category) => ({ value: category, label: category }));
   readonly budgets = computed(() => {
     const expenses = this.expenses

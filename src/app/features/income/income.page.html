@@ -1,3 +1,7 @@
+<app-loader
+  [active]="firestoreBusy()"
+  [message]="firestoreLoaderMessage()"
+/>
 <section class="page-intro">
   <div>
     <p class="section-kicker">Your baseline</p>
@@ -9,32 +13,77 @@
 <div class="income-page-grid">
   <section class="panel income-editor">
     <div class="panel-heading">
-      <div><p class="section-kicker">Recurring income</p><h2>Pay schedule</h2></div>
+      <div>
+        <p class="section-kicker">Recurring income</p>
+        <h2>Pay schedule</h2>
+      </div>
     </div>
-    <form class="income-form" (ngSubmit)="saveIncome()">
+    <form
+      class="income-form"
+      (ngSubmit)="saveIncome()"
+    >
       @for (slot of payAmountSlots(); track slot.index) {
         <label>
           <span>Pay amount {{ slot.index + 1 }} of {{ payAmountSlots().length }}</span>
-          <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="slot.amount" (ngModelChange)="updatePayAmount(slot.index, $event)" [name]="'payAmount-' + slot.index" required /></div>
+          <div class="input-with-prefix">
+            <span>{{ preferences.currency() }}</span
+            ><input
+              type="number"
+              min="0.01"
+              step="0.01"
+              [ngModel]="slot.amount"
+              (ngModelChange)="updatePayAmount(slot.index, $event)"
+              [name]="'payAmount-' + slot.index"
+              required
+            />
+          </div>
         </label>
       }
       <label>
         <span>Pay frequency</span>
-        <app-dropdown [options]="frequencyOptions" [value]="frequency()" (valueChange)="setFrequency($event)" ariaLabel="Pay frequency" />
+        <app-dropdown
+          [options]="frequencyOptions"
+          [value]="frequency()"
+          (valueChange)="setFrequency($event)"
+          ariaLabel="Pay frequency"
+        />
       </label>
       <label>
         <span>Next payday</span>
-        <input type="date" [ngModel]="nextPayDate()" (ngModelChange)="nextPayDate.set($event); saved.set(false)" name="nextPayDate" required />
+        <input
+          type="date"
+          [ngModel]="nextPayDate()"
+          (ngModelChange)="nextPayDate.set($event); saved.set(false)"
+          name="nextPayDate"
+          required
+        />
       </label>
-      <p class="field-hint">Enter a separate amount for each typical payday. Weekly uses four amounts; biweekly and twice-monthly use two. The monthly baseline uses the average paycheck across a full year.</p>
+      <p class="field-hint">
+        Enter a separate amount for each typical payday. Weekly uses four amounts; biweekly and twice-monthly use two.
+        The monthly baseline uses the average paycheck across a full year.
+      </p>
       <div class="income-submit-row">
-        @if (saved()) { <span class="saved-message" role="status">Income schedule saved</span> }
-        <button type="submit" class="primary-button">Save schedule</button>
+        @if (saved()) {
+          <span
+            class="saved-message"
+            role="status"
+            >Income schedule saved</span
+          >
+        }
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Save schedule
+        </button>
       </div>
     </form>
   </section>
 
-  <aside class="income-projection" aria-label="Monthly income projection">
+  <aside
+    class="income-projection"
+    aria-label="Monthly income projection"
+  >
     <p class="section-kicker">Budget baseline</p>
     <p class="projection-amount">{{ formatCurrency(monthlyEquivalent()) }}</p>
     <p class="projection-caption">Estimated monthly income</p>
@@ -45,35 +94,94 @@
   </aside>
 </div>
 
-<section class="panel income-streams" aria-labelledby="income-streams-title">
+<section
+  class="panel income-streams"
+  aria-labelledby="income-streams-title"
+>
   <div class="panel-heading">
-    <div><p class="section-kicker">Beyond your paycheck</p><h2 id="income-streams-title">Other income</h2></div>
-    <div class="income-stream-total"><span>This month</span><strong>{{ formatCurrency(additionalIncomeThisMonth()) }}</strong></div>
+    <div>
+      <p class="section-kicker">Beyond your paycheck</p>
+      <h2 id="income-streams-title">Other income</h2>
+    </div>
+    <div class="income-stream-total">
+      <span>This month</span><strong>{{ formatCurrency(additionalIncomeThisMonth()) }}</strong>
+    </div>
   </div>
-  <form class="income-stream-form" (ngSubmit)="saveIncomeStream()">
+  <form
+    class="income-stream-form"
+    (ngSubmit)="saveIncomeStream()"
+  >
     <label>
       <span>Income name</span>
-      <input type="text" [ngModel]="streamName()" (ngModelChange)="streamName.set($event)" name="streamName" maxlength="60" placeholder="Client project or cash gift" required />
+      <input
+        type="text"
+        [ngModel]="streamName()"
+        (ngModelChange)="streamName.set($event)"
+        name="streamName"
+        maxlength="60"
+        placeholder="Client project or cash gift"
+        required
+      />
     </label>
     <label>
       <span>Type</span>
-      <app-dropdown [options]="streamTypeOptions" [value]="streamType()" (valueChange)="streamType.set($event)" ariaLabel="Other income type" />
+      <app-dropdown
+        [options]="streamTypeOptions"
+        [value]="streamType()"
+        (valueChange)="streamType.set($event)"
+        ariaLabel="Other income type"
+      />
     </label>
     <label>
       <span>Amount</span>
-      <div class="input-with-prefix"><span>{{ preferences.currency() }}</span><input type="number" min="0.01" step="0.01" [ngModel]="streamAmount()" (ngModelChange)="streamAmount.set($event)" name="streamAmount" required /></div>
+      <div class="input-with-prefix">
+        <span>{{ preferences.currency() }}</span
+        ><input
+          type="number"
+          min="0.01"
+          step="0.01"
+          [ngModel]="streamAmount()"
+          (ngModelChange)="streamAmount.set($event)"
+          name="streamAmount"
+          required
+        />
+      </div>
     </label>
     <label>
       <span>Start or received date</span>
-      <input type="date" [ngModel]="streamDate()" (ngModelChange)="streamDate.set($event)" name="streamDate" required />
+      <input
+        type="date"
+        [ngModel]="streamDate()"
+        (ngModelChange)="streamDate.set($event)"
+        name="streamDate"
+        required
+      />
     </label>
     <label class="monthly-repeat-option">
-      <input type="checkbox" [ngModel]="streamRepeatsMonthly()" (ngModelChange)="streamRepeatsMonthly.set($event)" name="streamRepeatsMonthly" />
+      <input
+        type="checkbox"
+        [ngModel]="streamRepeatsMonthly()"
+        (ngModelChange)="streamRepeatsMonthly.set($event)"
+        name="streamRepeatsMonthly"
+      />
       <span>Repeats monthly</span>
     </label>
     <div class="income-stream-submit">
-      @if (editingStreamId()) { <button type="button" class="secondary-button" (click)="resetIncomeStreamForm()">Cancel</button> }
-      <button type="submit" class="primary-button">{{ editingStreamId() ? 'Save changes' : 'Add income' }}</button>
+      @if (editingStreamId()) {
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="resetIncomeStreamForm()"
+        >
+          Cancel
+        </button>
+      }
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        {{ editingStreamId() ? 'Save changes' : 'Add income' }}
+      </button>
     </div>
   </form>
 
@@ -83,12 +191,27 @@
         <article class="income-stream-row">
           <div class="income-stream-description">
             <strong>{{ stream.name }}</strong>
-            <span>{{ stream.type }} · {{ stream.repeatsMonthly ? 'Monthly from ' : 'Received ' }}{{ stream.date | date: 'mediumDate' }}</span>
+            <span
+              >{{ stream.type }} · {{ stream.repeatsMonthly ? 'Monthly from ' : 'Received '
+              }}{{ stream.date | date: 'mediumDate' }}</span
+            >
           </div>
           <strong class="income-stream-amount">{{ formatCurrency(stream.amount) }}</strong>
           <div class="income-stream-actions">
-            <button type="button" class="table-action edit-action" (click)="editIncomeStream(stream)">Edit</button>
-            <button type="button" class="table-action delete-action" (click)="deleteIncomeStream(stream.id)">Delete</button>
+            <button
+              type="button"
+              class="table-action edit-action"
+              (click)="editIncomeStream(stream)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="table-action delete-action"
+              (click)="deleteIncomeStream(stream.id)"
+            >
+              Delete
+            </button>
           </div>
         </article>
       }
