@@ -96,7 +96,7 @@ export class IncomePage {
 
   saveIncome(): void {
     const payAmounts = this.payAmounts().map(Number);
-    if (payAmounts.some((amount) => !Number.isFinite(amount) || amount <= 0) || !this.nextPayDate()) {
+    if (payAmounts.some((amount) => !Number.isFinite(amount) || amount < 0) || !this.nextPayDate()) {
       return;
     }
 
