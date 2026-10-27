@@ -1,25 +1,69 @@
+@use './app/app' as *;
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color: #e2e8f0;
-  background: #020617;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --page: #f2f5f0;
+  --surface: #ffffff;
+  --surface-soft: #f7f9f6;
+  --surface-raised: #fbfcfa;
+  --sidebar: #fcfdfb;
+  --text: #202c27;
+  --muted: #75827b;
+  --line: #e3e9e3;
+  --accent: #168878;
+  --accent-strong: #0e6f61;
+  --accent-soft: #e0f2ed;
+  --positive: #18866f;
+  --danger: #bd5a58;
+  --shadow: 0 16px 42px rgba(37, 59, 48, 0.06);
+  color: var(--text);
+  background: var(--page);
+  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #121916;
+  --surface: #1b2420;
+  --surface-soft: #202b26;
+  --surface-raised: #242f2a;
+  --sidebar: #171f1b;
+  --text: #ecf1ed;
+  --muted: #a0afa6;
+  --line: #34423a;
+  --accent: #5bc4a7;
+  --accent-strong: #79d6b9;
+  --accent-soft: #263d34;
+  --positive: #78d5b5;
+  --danger: #ef9a91;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.17);
+  color: var(--text);
+  background: var(--page);
 }
 
 html, body {
   margin: 0;
   min-height: 100%;
-  background: #020617;
+  background: var(--page);
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
+  color: var(--text);
 }
 
 * {
   box-sizing: border-box;
+}
+
+app-root {
+  display: block;
 }
 
 button, input, select {

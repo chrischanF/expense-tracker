@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { AnalyticsService } from './services/analytics.service';
@@ -10,7 +10,6 @@ import { FirebaseService } from './services/firebase.service';
 @Component({
   selector: 'app-root',
   imports: [FormsModule, BaseChartDirective, DatePipe],
-  styleUrl: './app.scss',
   templateUrl: './app.html',
 })
 export class App {
@@ -25,6 +24,7 @@ export class App {
   readonly monthlyIncome = this.expenseService.monthlyIncome;
   readonly syncStatus = this.expenseService.syncStatus;
   readonly isOnline = this.firebaseService.isOnline;
+  readonly theme = signal<'light' | 'dark'>(this.readTheme());
   range: 'month' | '30d' | 'year' | 'all' = 'month';
   editingExpenseId: string | null = null;
 
@@ -69,7 +69,7 @@ export class App {
     labels: ['No data'],
     datasets: [{
       data: [0],
-      backgroundColor: ['#22d3ee', '#a78bfa', '#fbbf24', '#34d399', '#f472b6', '#94a3b8'],
+      backgroundColor: ['#168878', '#e3a23b', '#607f9b', '#d9755e', '#81a94c', '#9b7bb5'],
     }],
   };
 
@@ -78,35 +78,64 @@ export class App {
     datasets: [{
       label: 'Spend',
       data: [],
-      backgroundColor: '#22d3ee',
+      backgroundColor: '#168878',
       borderRadius: 8,
     }],
   };
 
   readonly categoryChartType: any = 'doughnut';
   readonly trendChartType: any = 'bar';
-  readonly chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        labels: { color: '#e2e8f0' },
-      },
-    },
-    scales: {
-      y: {
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(148, 163, 184, 0.18)' },
-      },
-      x: {
-        ticks: { color: '#cbd5e1' },
-        grid: { display: false },
-      },
-    },
-  };
+  chartOptions: any = this.createChartOptions(this.theme());
 
   constructor() {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset['theme'] = this.theme();
+    }
     this.refreshDashboard();
+  }
+
+  private readTheme(): 'light' | 'dark' {
+    if (typeof localStorage === 'undefined') {
+      return 'light';
+    }
+
+    try {
+      const savedTheme = localStorage.getItem('expense-tracker.theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        return savedTheme;
+      }
+    } catch {
+      return 'light';
+    }
+
+    return typeof matchMedia !== 'undefined' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  private createChartOptions(theme: 'light' | 'dark'): any {
+    const textColor = theme === 'dark' ? '#b9c9c1' : '#68766f';
+    const gridColor = theme === 'dark' ? 'rgba(185, 201, 193, 0.12)' : 'rgba(55, 74, 65, 0.1)';
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: textColor } } },
+      scales: {
+        y: { ticks: { color: textColor }, grid: { color: gridColor } },
+        x: { ticks: { color: textColor }, grid: { display: false } },
+      },
+    };
+  }
+
+  toggleTheme(): void {
+    const nextTheme = this.theme() === 'dark' ? 'light' : 'dark';
+    this.theme.set(nextTheme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset['theme'] = nextTheme;
+    }
+    try {
+      localStorage.setItem('expense-tracker.theme', nextTheme);
+    } catch {}
+    this.chartOptions = this.createChartOptions(nextTheme);
   }
 
   private getCurrencyList(): string[] {
@@ -152,7 +181,7 @@ export class App {
       labels: categoryLabels.length ? categoryLabels : ['No data'],
       datasets: [{
         data: categoryValues.length ? categoryValues : [0],
-        backgroundColor: ['#22d3ee', '#a78bfa', '#fbbf24', '#34d399', '#f472b6', '#94a3b8'],
+        backgroundColor: ['#168878', '#e3a23b', '#607f9b', '#d9755e', '#81a94c', '#9b7bb5'],
       }],
     };
 
@@ -162,7 +191,7 @@ export class App {
       datasets: [{
         label: 'Spend',
         data: monthlyBreakdown.map((item) => item.total),
-        backgroundColor: '#22d3ee',
+        backgroundColor: '#168878',
         borderRadius: 8,
       }],
     };

@@ -1,12 +1,44 @@
-<main class="app-shell">
-  <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Expense Tracker</p>
-        <h1>Smart spending overview</h1>
-      </div>
+<div class="app-layout">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="#overview" aria-label="Ledger home">
+      <span class="brand-mark" aria-hidden="true">L</span>
+      <span>ledger<span class="brand-period">.</span></span>
+    </a>
 
-      <div class="flex items-center gap-3">
+    <div class="sidebar-label">Workspace</div>
+    <nav class="main-nav">
+      <a class="nav-link active" href="#overview"><span class="nav-icon" aria-hidden="true">⌂</span>Overview</a>
+      <a class="nav-link" href="#transactions"><span class="nav-icon" aria-hidden="true">≡</span>Transactions</a>
+      <a class="nav-link" href="#analytics"><span class="nav-icon" aria-hidden="true">▥</span>Analytics</a>
+    </nav>
+
+    <a class="sidebar-add" href="#add-expense"><span aria-hidden="true">+</span> Add expense</a>
+
+    <div class="sidebar-bottom">
+      <div class="sync-indicator">
+        <span class="status-dot" [class.is-offline]="!isOnline()"></span>
+        <span>{{ syncStatus() }}</span>
+      </div>
+      <div class="profile-row">
+        <span class="avatar" aria-hidden="true">{{ currentUser() ? currentUser()?.displayName?.charAt(0) : 'G' }}</span>
+        <span class="profile-name">{{ currentUser()?.displayName || currentUser()?.email || 'Guest account' }}</span>
+        @if (currentUser()) {
+          <button type="button" class="profile-action" aria-label="Sign out" title="Sign out" (click)="signOut()">↗</button>
+        } @else {
+          <button type="button" class="profile-action" aria-label="Sign in with Google" title="Sign in with Google" (click)="signIn()">↗</button>
+        }
+      </div>
+    </div>
+  </aside>
+
+  <main class="workspace" id="overview">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Personal finances</p>
+        <h1>Overview</h1>
+        <p class="header-date">A clear view of where your money goes.</p>
+      </div>
+      <div class="header-tools">
         <label class="currency-picker">
           <span>Currency</span>
           <select [(ngModel)]="selectedCurrency" name="selectedCurrency" (change)="applyCurrencySelection()">
@@ -15,130 +47,102 @@
             }
           </select>
         </label>
-        <div class="account-controls">
-          <div class="user-badge">{{ currentUser()?.email ?? 'Guest mode' }}</div>
-          <span class="sync-status" [class.offline-status]="!isOnline()">{{ syncStatus() }}</span>
-          @if (currentUser()) {
-            <button type="button" class="primary-button" (click)="signOut()">Sign out</button>
-          } @else {
-            <button type="button" class="primary-button" (click)="signIn()">Sign in with Google</button>
-          }
-        </div>
+        <button type="button" class="theme-toggle" [attr.aria-label]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [title]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" (click)="toggleTheme()">
+          @if (theme() === 'dark') { <span aria-hidden="true">☼</span> } @else { <span aria-hidden="true">◐</span> }
+        </button>
       </div>
-      @if (authError()) {
-        <p class="auth-error" role="alert">{{ authError() }}</p>
-      }
     </header>
 
-    <section class="stats-grid">
-      <article class="stat-card">
+    @if (authError()) {
+      <p class="auth-error" role="alert">{{ authError() }}</p>
+    }
+
+    <section class="stats-grid" aria-label="Monthly summary">
+      <article class="stat-card income-stat">
         <p>Monthly income</p>
         <strong>{{ formatCurrency(monthlyIncome()) }}</strong>
+        <span>Available this month</span>
       </article>
       <article class="stat-card">
-        <p>Spent</p>
+        <p>Total spent</p>
         <strong>{{ formatCurrency(summary.total) }}</strong>
-        <span>{{ incomeUsageRatio.toFixed(0) }}% used</span>
+        <span>{{ incomeUsageRatio.toFixed(0) }}% of income</span>
       </article>
       <article class="stat-card">
-        <p>Left to spend</p>
+        <p>Remaining</p>
         <strong class="remaining-value">{{ formatCurrency(remainingBalance) }}</strong>
+        <span>After recorded expenses</span>
       </article>
       <article class="stat-card">
         <p>Transactions</p>
         <strong>{{ expenses().length }}</strong>
+        <span>All time</span>
       </article>
     </section>
 
-    <section class="content-grid">
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Add expense</h2>
+    <section class="content-grid" aria-label="Expense tools">
+      <div class="panel expense-panel" id="add-expense">
+        <div class="panel-heading">
+          <div><p class="section-kicker">Track a payment</p><h2>{{ editingExpenseId ? 'Edit expense' : 'Add expense' }}</h2></div>
+          <span class="panel-mark" aria-hidden="true">＋</span>
         </div>
 
         <form class="expense-form" (ngSubmit)="submitExpense()">
           <label>
             <span>Amount</span>
-            <input type="number" step="0.01" [(ngModel)]="amount" name="amount" placeholder="0.00" required />
+            <div class="input-with-prefix"><span>{{ selectedCurrency }}</span><input type="number" step="0.01" [(ngModel)]="amount" name="amount" placeholder="0.00" required /></div>
           </label>
-
           <label>
             <span>Category</span>
             <select [(ngModel)]="category" name="category">
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Housing">Housing</option>
-              <option value="Bills">Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Other">Other</option>
+              <option value="Food">Food</option><option value="Transport">Transport</option><option value="Housing">Housing</option><option value="Bills">Bills</option><option value="Shopping">Shopping</option><option value="Other">Other</option>
             </select>
           </label>
-
           <label>
             <span>Date</span>
             <input type="date" [(ngModel)]="expenseDate" name="expenseDate" required />
           </label>
-
           <label>
-            <span>Note</span>
-            <input type="text" [(ngModel)]="note" name="note" placeholder="Optional description" />
+            <span>Note <small>Optional</small></span>
+            <input type="text" [(ngModel)]="note" name="note" placeholder="What was it for?" />
           </label>
-
           <div class="submit-row">
-            @if (editingExpenseId) {
-              <button type="button" class="secondary-button" (click)="cancelExpenseEdit()">Cancel</button>
-            }
-            <button type="submit" class="success-button">{{ editingExpenseId ? 'Update expense' : 'Save expense' }}</button>
+            @if (editingExpenseId) { <button type="button" class="secondary-button" (click)="cancelExpenseEdit()">Cancel</button> }
+            <button type="submit" class="primary-button">{{ editingExpenseId ? 'Update expense' : 'Save expense' }} <span aria-hidden="true">↗</span></button>
           </div>
         </form>
       </div>
 
-      <div class="panel">
-        <h2>Monthly income</h2>
+      <div class="panel income-panel">
+        <div class="panel-heading">
+          <div><p class="section-kicker">Your baseline</p><h2>Monthly income</h2></div>
+        </div>
         <div class="income-box">
           <label class="income-label">
-            <span>Enter monthly income</span>
+            <span>Take-home income</span>
             <input type="number" step="0.01" [(ngModel)]="monthlyIncomeInput" name="monthlyIncomeInput" placeholder="3500.00" />
           </label>
-          <button type="button" class="primary-button small-button" (click)="saveMonthlyIncome()">Save income</button>
+          <button type="button" class="secondary-button save-income" (click)="saveMonthlyIncome()">Update income</button>
         </div>
-
         <div class="chart-wrap mini-chart">
           <canvas baseChart [data]="categoryChartData" [options]="chartOptions" [type]="categoryChartType"></canvas>
         </div>
       </div>
     </section>
 
-    <section class="summary-grid">
-      <div class="panel table-panel">
-        <div class="panel-header">
-          <h2>Recent activity</h2>
-          <select [(ngModel)]="range" name="range" (change)="onRangeChange()">
-            <option value="month">This month</option>
-            <option value="30d">Last 30 days</option>
-            <option value="year">This year</option>
-            <option value="all">All time</option>
+    <section class="summary-grid" id="analytics">
+      <div class="panel table-panel" id="transactions">
+        <div class="panel-heading activity-heading">
+          <div><p class="section-kicker">Your money, in motion</p><h2>Recent activity</h2></div>
+          <select [(ngModel)]="range" name="range" (change)="onRangeChange()" aria-label="Filter transactions by date">
+            <option value="month">This month</option><option value="30d">Last 30 days</option><option value="year">This year</option><option value="all">All time</option>
           </select>
         </div>
-
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Category</th>
-                <th>Note</th>
-                <th class="amount-col">Amount</th>
-                <th class="action-col">Actions</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Date</th><th>Category</th><th>Note</th><th class="amount-col">Amount</th><th class="action-col">Actions</th></tr></thead>
             <tbody>
-              @if (filteredExpenses.length === 0) {
-                <tr>
-                  <td colspan="5" class="empty-state">No expenses saved for this period.</td>
-                </tr>
-              }
-
+              @if (filteredExpenses.length === 0) { <tr><td colspan="5" class="empty-state">No expenses saved for this period.</td></tr> }
               @for (expense of filteredExpenses; track expense.id) {
                 <tr>
                   <td>{{ expense.date | date: 'mediumDate' }}</td>
@@ -156,12 +160,11 @@
         </div>
       </div>
 
-      <div class="panel">
-        <h2>Monthly trend</h2>
-        <div class="chart-wrap">
-          <canvas baseChart [data]="trendChartData" [options]="chartOptions" [type]="trendChartType"></canvas>
-        </div>
+      <div class="panel trend-panel">
+        <div class="panel-heading"><div><p class="section-kicker">Spending patterns</p><h2>Monthly trend</h2></div></div>
+        <div class="chart-wrap"><canvas baseChart [data]="trendChartData" [options]="chartOptions" [type]="trendChartType"></canvas></div>
       </div>
     </section>
-  </div>
-</main>
+    <footer class="page-footer">A calmer way to keep track.</footer>
+  </main>
+</div>
