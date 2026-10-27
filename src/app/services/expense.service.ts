@@ -242,12 +242,12 @@ export class ExpenseService {
           void this.syncPendingChanges();
         },
         () => {
-          this.syncStatus.set('Offline or Firebase unavailable; changes are saved locally');
+          this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
           this.scheduleSyncRetry();
         },
       );
       }).catch(() => {
-        this.syncStatus.set('Offline or Firebase unavailable; changes are saved locally');
+        this.syncStatus.set('Listen failed: Offline or Firebase unavailable; changes are saved locally');
         this.scheduleSyncRetry();
       });
   }
@@ -281,8 +281,9 @@ export class ExpenseService {
         }
       }
       this.syncStatus.set('Synced');
-    } catch {
-      this.syncStatus.set('Offline or Firebase unavailable; changes are saved locally');
+    } catch (e){
+      console.log('Sync Error: ', e)
+      this.syncStatus.set('Sync failed: Offline or Firebase unavailable; changes are saved locally');
       this.scheduleSyncRetry();
     } finally {
       this.syncInProgress = false;
