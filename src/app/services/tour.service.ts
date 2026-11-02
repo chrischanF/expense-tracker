@@ -77,23 +77,42 @@ export class TourService {
     return [
       {
         element: '.main-nav',
-        popover: { title: 'Your finance workspace', description: 'Move between your overview, transactions, insights, fixed and other income, recurring bills, budgets, and savings goals.' },
+        popover: {
+          title: 'Your finance workspace',
+          description:
+            'Move between your overview, transactions, insights, fixed and other income, recurring bills, budgets, and savings goals.',
+        },
       },
       {
         element: '.page-intro',
-        popover: { title: 'A focused view for each task', description: 'Each section keeps its controls and information together. Use the Tour button anytime for a walkthrough of the current page.' },
+        popover: {
+          title: 'A focused view for each task',
+          description:
+            'Each section keeps its controls and information together. Use the Tour button anytime for a walkthrough of the current page.',
+        },
       },
       {
         element: '.sidebar-add',
-        popover: { title: 'Record an expense', description: 'Add a transaction here, then use a receipt photo or voice capture to prefill its details. Active recurring commitments are added on their due day.' },
+        popover: {
+          title: 'Record an expense',
+          description:
+            'Add a transaction here, then use a receipt photo or voice capture to prefill its details. Active recurring commitments are added on their due day.',
+        },
       },
       {
         element: '[data-tour="global-tools"]',
-        popover: { title: 'Make it yours', description: 'Set your display currency, switch the color theme, or replay this page’s tour from the help button.' },
+        popover: {
+          title: 'Make it yours',
+          description:
+            'Set your display currency, switch the color theme, or replay this page’s tour from the help button.',
+        },
       },
       {
         element: '[data-tour="page-tour-button"]',
-        popover: { title: 'Guidance when you need it', description: 'This button opens a walkthrough tailored to whichever page you are viewing.' },
+        popover: {
+          title: 'Guidance when you need it',
+          description: 'This button opens a walkthrough tailored to whichever page you are viewing.',
+        },
       },
     ];
   }
@@ -101,44 +120,197 @@ export class TourService {
   private pageSteps(route: string): DriveStep[] {
     const steps: Record<string, DriveStep[]> = {
       '/dashboard': [
-        { element: '.stats-grid', popover: { title: 'Monthly overview', description: 'Review fixed and secondary income, spending, remaining balance, and your next payday.' } },
-        { element: '.planning-summary-grid', popover: { title: 'Safe to spend and bill reminders', description: 'See a daily or weekly allowance after bills and savings, plus recurring bills due in the next seven days. Browser alerts are optional.' } },
-        { element: '.dashboard-budgets', popover: { title: 'Budget progress', description: 'Category progress changes color as spending approaches or exceeds each monthly limit.' } },
-        { element: '.dashboard-grid', popover: { title: 'Recent activity and income', description: 'Check recent expenses and your fixed pay schedule. Other income is included in this month’s baseline.' } },
+        {
+          element: '.stats-grid',
+          popover: {
+            title: 'Monthly overview',
+            description: 'Review fixed and secondary income, spending, remaining balance, and your next payday.',
+          },
+        },
+        {
+          element: '.planning-summary-grid',
+          popover: {
+            title: 'Safe to spend and bill reminders',
+            description:
+              'See a daily or weekly allowance after bills and savings, plus recurring bills due in the next seven days. Browser alerts are optional.',
+          },
+        },
+        {
+          element: '.dashboard-budgets',
+          popover: {
+            title: 'Budget progress',
+            description: 'Category progress changes color as spending approaches or exceeds each monthly limit.',
+          },
+        },
+        {
+          element: '.dashboard-grid',
+          popover: {
+            title: 'Recent activity and income',
+            description:
+              'Check recent expenses and your fixed pay schedule. Other income is included in this month’s baseline.',
+          },
+        },
       ],
       '/transactions': [
-        { element: '.page-intro', popover: { title: 'Manage transactions', description: 'Add or edit an expense. The form supports merchant details, individual currencies, receipt photos, and voice capture.' } },
-        { element: '.capture-controls', popover: { title: 'Capture an expense', description: 'Scan a receipt or speak a shorthand note. Recognition fills the form for you to review; it never saves automatically.' } },
-        { element: '.transaction-tools', popover: { title: 'Filter and export', description: 'Choose a date range, then export the visible transaction list with original and base-currency amounts as CSV.' } },
-        { element: '.transactions-panel', popover: { title: 'Your ledger', description: 'Review, edit, or remove recorded transactions here.' } },
+        {
+          element: '.page-intro',
+          popover: {
+            title: 'Manage transactions',
+            description:
+              'Add or edit an expense. The form supports merchant details, individual currencies, receipt photos, and voice capture.',
+          },
+        },
+        {
+          element: '.capture-controls',
+          popover: {
+            title: 'Capture an expense',
+            description:
+              'Scan a receipt or speak a shorthand note. Recognition fills the form for you to review; it never saves automatically.',
+          },
+        },
+        {
+          element: '.transaction-tools',
+          popover: {
+            title: 'Filter and export',
+            description:
+              'Choose a date range, then export the visible transaction list with original and base-currency amounts as CSV.',
+          },
+        },
+        {
+          element: '.transactions-panel',
+          popover: { title: 'Your ledger', description: 'Review, edit, or remove recorded transactions here.' },
+        },
       ],
       '/analytics': [
-        { element: '.source-filter', popover: { title: 'Filter by source', description: 'Focus the charts on a payment source or compare all sources.' } },
-        { element: '.analytics-grid', popover: { title: 'Spending patterns', description: 'Explore the category breakdown and switch the trend between the last 30 days and 12 months.' } },
+        {
+          element: '.source-filter',
+          popover: {
+            title: 'Filter by source',
+            description: 'Focus the charts on a payment source or compare all sources.',
+          },
+        },
+        {
+          element: '.analytics-grid',
+          popover: {
+            title: 'Spending patterns',
+            description: 'Explore the category breakdown and switch the trend between the last 30 days and 12 months.',
+          },
+        },
       ],
       '/income': [
-        { element: '.income-form', popover: { title: 'Set your fixed pay schedule', description: 'Enter a separate amount for each typical paycheck, choose its frequency, and set your next payday.' } },
-        { element: '.income-projection', popover: { title: 'Monthly projection', description: 'The fixed-pay estimate uses your average paycheck across a full year.' } },
-        { element: '.income-streams', popover: { title: 'Track other income', description: 'Add freelance work, dividends, gifts, bonuses, or asset sales. One-time income counts only in its received month; repeating streams count monthly from their start date.' } },
+        {
+          element: '.income-form',
+          popover: {
+            title: 'Set your fixed pay schedule',
+            description:
+              'Enter a separate amount for each typical paycheck, choose its frequency, and set your next payday.',
+          },
+        },
+        {
+          element: '.income-projection',
+          popover: {
+            title: 'Monthly projection',
+            description: 'The fixed-pay estimate uses your average paycheck across a full year.',
+          },
+        },
+        {
+          element: '.income-streams',
+          popover: {
+            title: 'Track other income',
+            description:
+              'Add freelance work, dividends, gifts, bonuses, or asset sales. One-time income counts only in its received month; repeating streams count monthly from their start date.',
+          },
+        },
       ],
       '/wallet': [
-        { element: '.page-intro', popover: { title: 'Manage your accounts', description: 'Track balances across your bank accounts, digital wallets, and cash accounts from one place.' } },
-        { element: '.wallet-form', popover: { title: 'Add or edit a wallet', description: 'Choose a Philippine bank or provider, name the account, select its type, and enter its starting balance. The last four digits are optional.' } },
-        { element: '.wallets-section', popover: { title: 'Live wallet balances', description: 'Balances update from the starting amount, linked pay-period deposits and other income, and wallet-linked expenses.' } },
-        { element: '.wallet-card-grid', popover: { title: 'Filter by account', description: 'Select a bank card to filter dashboard spending and analytics to that wallet. Select it again or clear the filter to show all accounts.' } },
-        { element: '.wallet-actions', popover: { title: 'Maintain account details', description: 'Edit a wallet’s account details or remove it from your list. Removing a wallet does not delete its linked transactions.' } },
+        {
+          element: '.page-intro',
+          popover: {
+            title: 'Manage your accounts',
+            description: 'Track balances across your bank accounts, digital wallets, and cash accounts from one place.',
+          },
+        },
+        {
+          element: '.wallet-form',
+          popover: {
+            title: 'Add or edit a wallet',
+            description:
+              'Choose a Philippine bank or provider, name the account, select its type, and enter its starting balance. The last four digits are optional.',
+          },
+        },
+        {
+          element: '.wallets-section',
+          popover: {
+            title: 'Live wallet balances',
+            description:
+              'Balances update from the starting amount, linked pay-period deposits and other income, and wallet-linked expenses.',
+          },
+        },
+        {
+          element: '.wallet-card-grid',
+          popover: {
+            title: 'Filter by account',
+            description:
+              'Select a bank card to filter dashboard spending and analytics to that wallet. Select it again or clear the filter to show all accounts.',
+          },
+        },
+        {
+          element: '.wallet-actions',
+          popover: {
+            title: 'Maintain account details',
+            description:
+              'Edit a wallet’s account details or remove it from your list. Removing a wallet does not delete its linked transactions.',
+          },
+        },
       ],
       '/recurring': [
-        { element: '.recurring-editor', popover: { title: 'Add a monthly commitment', description: 'Set the expected amount, category, payment source, and day of the month.' } },
-        { element: '.recurring-list', popover: { title: 'Manage recurring expenses', description: 'Pause, resume, edit, or remove commitments. Active items create one ledger entry per month after their due day.' } },
+        {
+          element: '.recurring-editor',
+          popover: {
+            title: 'Add a monthly commitment',
+            description: 'Set the expected amount, category, payment source, and day of the month.',
+          },
+        },
+        {
+          element: '.recurring-list',
+          popover: {
+            title: 'Manage recurring expenses',
+            description:
+              'Pause, resume, edit, or remove commitments. Active items create one ledger entry per month after their due day.',
+          },
+        },
       ],
       '/budgets': [
-        { element: '.budget-editor', popover: { title: 'Set a category limit', description: 'Choose a category and monthly cap. Saving an existing category updates its limit.' } },
-        { element: '.budget-list', popover: { title: 'Track your pace', description: 'Progress bars compare this month’s category spending to each saved limit.' } },
+        {
+          element: '.budget-editor',
+          popover: {
+            title: 'Set a category limit',
+            description: 'Choose a category and monthly cap. Saving an existing category updates its limit.',
+          },
+        },
+        {
+          element: '.budget-list',
+          popover: {
+            title: 'Track your pace',
+            description: 'Progress bars compare this month’s category spending to each saved limit.',
+          },
+        },
       ],
       '/goals': [
-        { element: '.goal-editor', popover: { title: 'Create a savings target', description: 'Name a goal, enter its target amount, and optionally set a target date.' } },
-        { element: '.goal-list', popover: { title: 'Add contributions', description: 'Record contributions to move each goal forward and review its progress.' } },
+        {
+          element: '.goal-editor',
+          popover: {
+            title: 'Create a savings target',
+            description: 'Name a goal, enter its target amount, and optionally set a target date.',
+          },
+        },
+        {
+          element: '.goal-list',
+          popover: {
+            title: 'Add contributions',
+            description: 'Record contributions to move each goal forward and review its progress.',
+          },
+        },
       ],
     };
     return steps[route] ?? this.introSteps();
