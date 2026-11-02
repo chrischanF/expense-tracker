@@ -1,0 +1,181 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.planning-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.planning-panel {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.safe-spend-panel {
+  border-color: #0b765f;
+  background: linear-gradient(120deg, #006b56, #13856c 62%, #26a77d);
+  color: #fff;
+}
+
+.payday-panel {
+  background: color-mix(in srgb, #39c5a1 12%, var(--surface));
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.section-kicker {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.safe-spend-panel .section-kicker {
+  color: rgb(255 255 255 / 76%);
+}
+
+h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.safe-spend-panel h2 {
+  color: #fff;
+}
+
+.segmented-control {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 99px;
+  background: rgb(0 53 43 / 26%);
+}
+
+.segmented-control button {
+  min-height: 27px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 99px;
+  background: transparent;
+  color: rgb(255 255 255 / 77%);
+  cursor: pointer;
+  font-size: 0.6rem;
+}
+
+.segmented-control button.active {
+  background: #fff;
+  color: #08735c;
+}
+
+.safe-spend-amount {
+  display: block;
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.safe-spend-caption {
+  margin: 2px 0 6px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 0.7rem;
+}
+
+.spend-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 24%);
+}
+
+.spend-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #8be6bf;
+}
+
+.safe-spend-note,
+.rate-warning {
+  margin: 4px 0 0;
+  color: rgb(255 255 255 / 76%);
+  font-size: 0.61rem;
+  line-height: 1.4;
+}
+
+.rate-warning {
+  color: #ffe2a3;
+}
+
+.payday-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent-strong);
+  font-size: 1rem;
+}
+
+.payday-date {
+  color: var(--text);
+  font-size: 1.45rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.payday-countdown {
+  margin: 3px 0 6px;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.payday-amount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.payday-amount span {
+  color: var(--muted);
+  font-size: 0.63rem;
+}
+
+.payday-amount strong {
+  color: var(--accent-strong);
+  font-size: 0.83rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 640px) {
+  .planning-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(200px, 0.8fr);
+    gap: 11px;
+  }
+
+  .planning-panel {
+    padding: 11px;
+  }
+}

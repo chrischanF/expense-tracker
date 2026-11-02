@@ -1,0 +1,160 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.lower-panel {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.section-kicker {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.alert-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.alerts-on {
+  color: var(--positive);
+  font-size: 0.72rem;
+}
+
+.bill-list {
+  display: grid;
+}
+
+.bill-item {
+  display: grid;
+  grid-template-columns: 35px 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bill-item:last-child {
+  border-bottom: 0;
+}
+
+.bill-date {
+  display: grid;
+  width: 33px;
+  height: 38px;
+  align-content: center;
+  justify-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.bill-date strong {
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
+.bill-date small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.48rem;
+  text-transform: uppercase;
+}
+
+.bill-icon {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.85rem;
+}
+
+.bill-description {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.bill-description strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bill-description span {
+  color: var(--muted);
+  font-size: 0.57rem;
+}
+
+.bill-amount {
+  color: var(--text);
+  font-size: 0.61rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.empty-bills {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  color: var(--positive);
+}
+
+.empty-bills span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--positive) 14%, var(--surface));
+}
+
+.empty-bills p,
+.footnote {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.63rem;
+}
+
+.footnote {
+  margin-top: 10px;
+  line-height: 1.4;
+}

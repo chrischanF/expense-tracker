@@ -1,0 +1,61 @@
+<section
+  class="lower-panel reminders-panel"
+  aria-labelledby="dashboard-reminders-title"
+>
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">Coming up</p>
+      <h2 id="dashboard-reminders-title">Upcoming bills</h2>
+    </div>
+    @if (remindersSupported() && reminderPermission() !== 'granted') {
+      <button
+        type="button"
+        class="alert-button"
+        (click)="enableReminders.emit()"
+        aria-label="Enable bill alerts"
+        title="Enable bill alerts"
+      >
+        ♢
+      </button>
+    } @else if (reminderPermission() === 'granted') {
+      <span
+        class="alerts-on"
+        role="status"
+        aria-label="Bill alerts enabled"
+        >●</span
+      >
+    }
+  </div>
+  @if (bills().length) {
+    <div class="bill-list">
+      @for (bill of bills().slice(0, 3); track bill.id) {
+        <article class="bill-item">
+          <span class="bill-date"
+            ><strong>{{ bill.dueDate | date: 'dd' }}</strong
+            ><small>{{ bill.dueDate | date: 'MMM' }}</small></span
+          >
+          <span
+            class="bill-icon"
+            aria-hidden="true"
+            >{{ bill.category === 'housing' ? '⌂' : '↻' }}</span
+          >
+          <div class="bill-description">
+            <strong>{{ bill.name }}</strong>
+            <span>{{ bill.daysUntilDue === 0 ? 'Due today' : 'In ' + bill.daysUntilDue + ' days' }}</span>
+          </div>
+          <strong class="bill-amount">{{
+            preferences.formatCurrency(bill.amount, bill.currency || preferences.currency())
+          }}</strong>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="empty-bills">
+      <span aria-hidden="true">✓</span>
+      <p>No bills due in the next 7 days</p>
+    </div>
+  }
+  @if (!remindersSupported()) {
+    <p class="footnote">Browser alerts are unavailable. Your bill schedule remains here.</p>
+  }
+</section>

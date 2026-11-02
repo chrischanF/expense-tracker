@@ -1,0 +1,121 @@
+<section
+  class="insights-grid"
+  aria-label="Spending overview and financial summary"
+>
+  <article class="insight-panel spending-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">Your spending</p>
+        <h2>Spending overview</h2>
+      </div>
+      <span class="period-label">This month</span>
+    </div>
+    <div class="spending-content">
+      <div class="donut-wrap">
+        @if (totalSpent() > 0) {
+          <canvas
+            baseChart
+            [data]="categoryChartData()"
+            [options]="categoryChartOptions"
+            type="doughnut"
+            aria-label="Monthly spending by category"
+          ></canvas>
+        } @else {
+          <div
+            class="empty-donut"
+            aria-hidden="true"
+          >
+            <span></span>
+          </div>
+        }
+        <div class="donut-center">
+          <strong>{{ formatCurrency(totalSpent()) }}</strong>
+          <span>Total expenses</span>
+        </div>
+      </div>
+      <div class="category-list">
+        @if (categories().length) {
+          @for (category of categories(); track category.name) {
+            <div class="category-row">
+              <span
+                class="category-dot"
+                [style.--category-color]="category.color"
+              ></span>
+              <span class="category-name">{{ category.name }}</span>
+              <span class="category-share">{{ category.share | number: '1.0-0' }}%</span>
+              <strong>{{ formatCurrency(category.amount) }}</strong>
+            </div>
+          }
+        } @else {
+          <p class="empty-copy">Add expenses to see your category breakdown.</p>
+        }
+      </div>
+    </div>
+  </article>
+
+  <article class="insight-panel trend-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">Spending pattern</p>
+        <h2>Monthly trend</h2>
+      </div>
+      <div
+        class="range-control"
+        role="group"
+        aria-label="Trend period"
+      >
+        <button
+          type="button"
+          [class.active]="range() === 'month'"
+          [attr.aria-pressed]="range() === 'month'"
+          (click)="range.set('month')"
+        >
+          This month
+        </button>
+        <button
+          type="button"
+          [class.active]="range() === 'six-months'"
+          [attr.aria-pressed]="range() === 'six-months'"
+          (click)="range.set('six-months')"
+        >
+          6 months
+        </button>
+      </div>
+    </div>
+    <div class="trend-chart">
+      <canvas
+        baseChart
+        [data]="trendChartData()"
+        [options]="trendChartOptions()"
+        type="line"
+        [attr.aria-label]="range() === 'month' ? 'Daily spending this month' : 'Monthly spending over six months'"
+      ></canvas>
+    </div>
+  </article>
+
+  <article class="insight-panel financial-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">At a glance</p>
+        <h2>Financial summary</h2>
+      </div>
+    </div>
+    <div class="financial-stat">
+      <span>Monthly income</span>
+      <strong>{{ formatCurrency(monthlyIncome()) }}</strong>
+    </div>
+    <div class="financial-stat">
+      <span>Total expenses</span>
+      <strong>{{ formatCurrency(totalSpent()) }}</strong>
+    </div>
+    <div class="financial-stat savings-stat">
+      <span>Savings rate</span>
+      <strong>{{ savingsRate() | number: '1.0-1' }}%</strong>
+    </div>
+    <a
+      class="income-link"
+      routerLink="/income"
+      >Manage income <span aria-hidden="true">→</span></a
+    >
+  </article>
+</section>

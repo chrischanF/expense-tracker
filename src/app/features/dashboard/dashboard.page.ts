@@ -1,6 +1,4 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
@@ -11,28 +9,35 @@ import { PlanningService } from '../../services/planning.service';
 import { getUpcomingBills } from '../../services/planning.model';
 import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
 import { WalletService } from '../../services/wallet.service';
-import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
-import { BankCardComponent } from '../wallet/bank-card.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
 import { toLocalDateInputValue } from '../../utils/date-normalization';
+import { DashboardHeaderComponent } from './dashboard-header.component';
+import { DashboardWalletsComponent } from './dashboard-wallets.component';
+import { DashboardPlanningComponent } from './dashboard-planning.component';
+import { DashboardBudgetsComponent, type DashboardBudget } from './dashboard-budgets.component';
+import { DashboardActivityComponent } from './dashboard-activity.component';
+import { DashboardInsightsComponent } from './dashboard-insights.component';
+import { DashboardGoalsComponent } from './dashboard-goals.component';
+import { DashboardRemindersComponent } from './dashboard-reminders.component';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [BankCardComponent, BudgetProgressComponent, DatePipe, LoaderComponent, RouterLink],
+  imports: [
+    DashboardHeaderComponent,
+    DashboardWalletsComponent,
+    DashboardPlanningComponent,
+    DashboardBudgetsComponent,
+    DashboardActivityComponent,
+    DashboardInsightsComponent,
+    DashboardGoalsComponent,
+    DashboardRemindersComponent,
+    LoaderComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
 })
 export class DashboardPage {
-  private readonly categoryIcons: Record<string, string> = {
-    food: '🍽️',
-    transport: '🚗',
-    housing: '🏠',
-    bills: '🧾',
-    shopping: '🛒',
-    other: '⋯',
-  };
-
   private readonly expensesService = inject(ExpenseService);
   private readonly incomeStreams = inject(IncomeStreamService);
   readonly walletService = inject(WalletService);
@@ -89,35 +94,19 @@ export class DashboardPage {
     }));
   });
   readonly summary = computed(() => this.analytics.summarize(this.overviewExpenses()));
-  readonly monthSummary = computed(() => this.analytics.summarize(this.baseMonthExpenses()));
   readonly recentExpenses = computed(() => this.overviewExpenses().slice(0, 4));
-  readonly frequencyLabel = computed(
-    () =>
-      ({
-        weekly: 'weekly',
-        biweekly: 'every two weeks',
-        'twice-monthly': 'twice a month',
-        monthly: 'monthly',
-      })[this.incomeProfile().frequency],
+  readonly trendExpenses = computed(() =>
+    this.selectedExpenses()
+      .map((expense) => ({
+        expense,
+        amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),
+      }))
+      .filter((entry) => entry.amount !== null)
+      .map(({ expense, amount }) => ({ ...expense, amount: amount ?? 0 })),
   );
   readonly periodIncome = computed(() => this.activePayPeriod()?.amount ?? this.monthlyIncome());
   readonly remainingBalance = computed(() => this.periodIncome() - this.summary().total);
-  readonly incomeUsageRatio = computed(() =>
-    this.periodIncome() > 0 ? (this.summary().total / this.periodIncome()) * 100 : 0,
-  );
-  readonly payPeriodUsageRatio = computed(() => {
-    const period = this.activePayPeriod();
-    return period && period.amount > 0 ? (this.summary().total / period.amount) * 100 : 0;
-  });
-  readonly monthlyIncomeUsageRatio = computed(() =>
-    this.monthlyIncome() > 0 ? (this.monthSummary().total / this.monthlyIncome()) * 100 : 0,
-  );
-  readonly payPeriodBudgetStatus = computed(() => this.statusForUsage(this.payPeriodUsageRatio()));
-  readonly monthlyBudgetStatus = computed(() => this.statusForUsage(this.monthlyIncomeUsageRatio()));
-  readonly budgetStatus = computed<'healthy' | 'watch' | 'critical' | 'over'>(() => {
-    return this.statusForUsage(this.incomeUsageRatio());
-  });
-  readonly budgetProgress = computed(() => {
+  readonly budgetProgress = computed<DashboardBudget[]>(() => {
     const expenses = this.overviewExpenses();
     return this.planning.budgets().map((budget) => ({
       ...budget,
@@ -168,6 +157,10 @@ export class DashboardPage {
   readonly safeToSpendAmount = computed(() =>
     this.allowancePeriod() === 'daily' ? this.safeToSpendPlan().daily : this.safeToSpendPlan().weekly,
   );
+  readonly safeToSpendRatio = computed(() =>
+    this.periodIncome() > 0 ? Math.min(100, (this.safeToSpendPlan().remaining / this.periodIncome()) * 100) : 0,
+  );
+  readonly savingsGoals = this.planning.goals;
   readonly upcomingBills = computed(() => {
     const today = new Date();
     const bills = getUpcomingBills(this.planning.recurringTransactions(), today, 7);
@@ -184,18 +177,7 @@ export class DashboardPage {
     return this.preferences.formatCurrency(value);
   }
 
-  categoryIcon(category: string): string {
-    return this.categoryIcons[category.trim().toLowerCase()] ?? '•';
-  }
-
   enableBillReminders(): void {
     void this.billReminders.enable();
-  }
-
-  private statusForUsage(usage: number): 'healthy' | 'watch' | 'critical' | 'over' {
-    if (usage >= 100) return 'over';
-    if (usage >= 90) return 'critical';
-    if (usage >= 70) return 'watch';
-    return 'healthy';
   }
 }

@@ -1,0 +1,53 @@
+<section
+  class="wallets-section"
+  aria-labelledby="wallets-title"
+>
+  <div class="section-heading">
+    <div>
+      <h2 id="wallets-title">{{ selectedWalletName() || 'Your wallets' }}</h2>
+    </div>
+    <a
+      class="text-link"
+      routerLink="/wallet"
+      ><span aria-hidden="true">＋</span> Add wallet</a
+    >
+  </div>
+  @if (balances().length) {
+    <div class="wallet-cards">
+      @for (balance of balances(); track balance.wallet.id) {
+        <app-bank-card
+          [balance]="balance"
+          [selected]="selectedWalletId() === balance.wallet.id"
+          [compact]="true"
+          (selectedChange)="walletSelected.emit(balance.wallet.id)"
+        />
+      }
+    </div>
+  } @else {
+    <a
+      class="wallet-empty"
+      routerLink="/wallet"
+    >
+      <span
+        class="wallet-empty-icon"
+        aria-hidden="true"
+        >＋</span
+      >
+      <span><strong>Add your first wallet</strong><small>See all your balances in one place</small></span>
+      <span
+        class="wallet-empty-arrow"
+        aria-hidden="true"
+        >→</span
+      >
+    </a>
+  }
+  @if (selectedWalletId()) {
+    <button
+      type="button"
+      class="clear-filter"
+      (click)="walletSelected.emit(null)"
+    >
+      Show all accounts
+    </button>
+  }
+</section>

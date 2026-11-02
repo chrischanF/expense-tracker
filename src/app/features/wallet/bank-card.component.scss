@@ -32,6 +32,39 @@
   box-shadow: 0 0 0 2px var(--card-primary);
 }
 
+.bank-card-compact {
+  min-height: 84px;
+  padding: 13px;
+  border-width: 1px;
+  border-radius: 9px;
+}
+
+.bank-card-compact .bank-name {
+  font-size: 0.75rem;
+}
+
+.bank-card-compact .account-type {
+  border: 0;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 20%);
+  padding: 4px 7px;
+  font-size: 0.52rem;
+  text-transform: capitalize;
+}
+
+.bank-card-compact .card-chip,
+.bank-card-compact .account-number {
+  display: none;
+}
+
+.bank-card-compact .balance-copy > span {
+  font-size: 0.56rem;
+}
+
+.bank-card-compact .balance-copy strong {
+  font-size: 0.98rem;
+}
+
 .card-topline,
 .card-bottomline {
   display: flex;

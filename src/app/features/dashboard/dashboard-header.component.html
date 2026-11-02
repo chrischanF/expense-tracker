@@ -1,0 +1,14 @@
+<header class="dashboard-header">
+  <div class="heading-copy">
+    <h1>Good evening <span aria-hidden="true">👋</span></h1>
+    <p class="subtitle">Here’s your money at a glance.</p>
+  </div>
+  <a
+    class="primary-button add-expense-button"
+    routerLink="/transactions"
+    [queryParams]="{ action: 'add' }"
+  >
+    <span aria-hidden="true">＋</span>
+    Add expense
+  </a>
+</header>

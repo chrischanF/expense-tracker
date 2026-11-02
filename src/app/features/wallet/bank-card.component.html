@@ -1,6 +1,7 @@
 <button
   type="button"
   class="bank-card"
+  [class.bank-card-compact]="compact()"
   [class.is-selected]="selected()"
   [style.--card-primary]="balance().wallet.colorHex"
   [style.--card-secondary]="secondaryColor()"

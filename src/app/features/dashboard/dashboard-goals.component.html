@@ -1,0 +1,56 @@
+<section
+  class="lower-panel goals-panel"
+  aria-labelledby="dashboard-goals-title"
+>
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">Keep moving forward</p>
+      <h2 id="dashboard-goals-title">Your goals</h2>
+    </div>
+    <a
+      class="text-link"
+      routerLink="/goals"
+      >View all <span aria-hidden="true">→</span></a
+    >
+  </div>
+  @if (goals().length) {
+    <div class="goal-list">
+      @for (goal of goals().slice(0, 3); track goal.id) {
+        <div class="goal-item">
+          <div class="goal-topline">
+            <span
+              class="goal-mark"
+              aria-hidden="true"
+              >◎</span
+            >
+            <strong>{{ goal.name }}</strong>
+            <span class="goal-percent">{{ progress(goal) }}%</span>
+          </div>
+          <div
+            class="goal-track"
+            role="progressbar"
+            [attr.aria-label]="goal.name + ' savings progress'"
+            [attr.aria-valuemin]="0"
+            [attr.aria-valuemax]="100"
+            [attr.aria-valuenow]="progress(goal)"
+          >
+            <span [style.width.%]="progress(goal)"></span>
+          </div>
+          <p>
+            {{ preferences.formatCurrency(goal.savedAmount) }} of {{ preferences.formatCurrency(goal.targetAmount) }}
+          </p>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-goals">
+      <span
+        class="goal-mark"
+        aria-hidden="true"
+        >◎</span
+      >
+      <p>No savings goals yet.</p>
+      <a routerLink="/goals">Create your first goal <span aria-hidden="true">→</span></a>
+    </div>
+  }
+</section>

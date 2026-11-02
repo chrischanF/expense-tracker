@@ -1,0 +1,50 @@
+<section
+  class="budgets-panel"
+  aria-labelledby="dashboard-budgets-title"
+>
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">Monthly guardrails</p>
+      <h2 id="dashboard-budgets-title">Category budgets</h2>
+    </div>
+    <a
+      class="text-link"
+      routerLink="/budgets"
+      >Manage budgets <span aria-hidden="true">→</span></a
+    >
+  </div>
+  @if (budgets().length) {
+    <div class="budget-list">
+      @for (budget of budgets().slice(0, 3); track budget.id) {
+        <div class="budget-row">
+          <div class="budget-heading">
+            <strong>{{ budget.category }}</strong>
+            <span
+              >{{ preferences.formatCurrency(budget.spent) }} /
+              {{ preferences.formatCurrency(budget.monthlyLimit) }}</span
+            >
+          </div>
+          <app-budget-progress
+            [label]="budget.category + ' monthly budget'"
+            [spent]="budget.spent"
+            [limit]="budget.monthlyLimit"
+          />
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-budget">
+      <span
+        class="budget-empty-icon"
+        aria-hidden="true"
+        >◷</span
+      >
+      <p>No monthly budgets set</p>
+      <a
+        class="text-link"
+        routerLink="/budgets"
+        >Set a spending limit <span aria-hidden="true">→</span></a
+      >
+    </div>
+  }
+</section>

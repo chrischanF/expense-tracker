@@ -1,0 +1,88 @@
+<section
+  class="planning-grid"
+  aria-label="Safe spending and next payday"
+>
+  <article class="planning-panel safe-spend-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">A little breathing room</p>
+        <h2>Safe to Spend Today</h2>
+      </div>
+      <div
+        class="segmented-control"
+        role="group"
+        aria-label="Allowance period"
+      >
+        <button
+          type="button"
+          [class.active]="allowancePeriod() === 'daily'"
+          [attr.aria-pressed]="allowancePeriod() === 'daily'"
+          (click)="allowancePeriodChange.emit('daily')"
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          [class.active]="allowancePeriod() === 'weekly'"
+          [attr.aria-pressed]="allowancePeriod() === 'weekly'"
+          (click)="allowancePeriodChange.emit('weekly')"
+        >
+          7 days
+        </button>
+      </div>
+    </div>
+    <strong class="safe-spend-amount">{{ preferences.formatCurrency(safeToSpendAmount()) }}</strong>
+    <p class="safe-spend-caption">
+      {{ preferences.formatCurrency(safeToSpend().remaining) }} left for {{ safeToSpend().daysRemaining }} days
+    </p>
+    <div
+      class="spend-track"
+      role="progressbar"
+      aria-label="Remaining spending allowance"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="100"
+      [attr.aria-valuenow]="safeToSpendRatio()"
+    >
+      <span [style.width.%]="safeToSpendRatio()"></span>
+    </div>
+    <p class="safe-spend-note">After upcoming bills and planned savings contributions.</p>
+    @if (exchangeRateLoading()) {
+      <p
+        class="safe-spend-note"
+        role="status"
+      >
+        Refreshing exchange rates; foreign-currency amounts are temporarily excluded.
+      </p>
+    }
+    @if (exchangeRateError()) {
+      <p
+        class="rate-warning"
+        role="status"
+      >
+        {{ exchangeRateError() }} Foreign amounts are excluded from converted totals until a rate is available.
+      </p>
+    }
+  </article>
+
+  <article class="planning-panel payday-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">Income schedule</p>
+        <h2>Next payday</h2>
+      </div>
+      <span
+        class="payday-icon"
+        aria-hidden="true"
+        >▣</span
+      >
+    </div>
+    <div class="payday-date">{{ incomeProfile().nextPayDate | date: 'MMM d' }}</div>
+    <p class="payday-countdown">
+      {{ daysUntilPayday() === 0 ? 'Expected today' : 'In ' + daysUntilPayday() + ' days' }}
+    </p>
+    <div class="payday-amount">
+      <span>Expected income</span>
+      <strong>{{ preferences.formatCurrency(paydayAmount()) }}</strong>
+    </div>
+  </article>
+</section>

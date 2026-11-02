@@ -13,6 +13,7 @@ export class BankCardComponent {
   readonly preferences = inject(AppPreferencesService);
   readonly balance = input.required<WalletBalance>();
   readonly selected = input(false);
+  readonly compact = input(false);
   readonly selectedChange = output<void>();
   readonly secondaryColor = computed(
     () => PH_BANK_PRESETS.find((preset) => preset.code === this.balance().wallet.bankCode)?.secondary ?? '#0F172A',
