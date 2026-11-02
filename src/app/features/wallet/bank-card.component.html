@@ -1,0 +1,32 @@
+<button
+  type="button"
+  class="bank-card"
+  [class.is-selected]="selected()"
+  [style.--card-primary]="balance().wallet.colorHex"
+  [style.--card-secondary]="secondaryColor()"
+  [attr.aria-pressed]="selected()"
+  [attr.aria-label]="balance().wallet.name + ', balance ' + balance().remainingBalance"
+  (click)="selectedChange.emit()"
+>
+  <span class="card-topline">
+    <span class="bank-name">{{ balance().wallet.name }}</span>
+    <span class="account-type">{{ accountTypeLabel() }}</span>
+  </span>
+  <span
+    class="card-chip"
+    aria-hidden="true"
+    ><span></span
+  ></span>
+  <span class="account-number">•••• &nbsp;{{ balance().wallet.accountNumberLast4 || '••••' }}</span>
+  <span class="card-bottomline">
+    <span class="balance-copy">
+      <span>Available balance</span>
+      <strong>{{ preferences.formatCurrency(balance().remainingBalance) }}</strong>
+    </span>
+    <span
+      class="card-mark"
+      aria-hidden="true"
+      >{{ balance().wallet.bankCode === 'cash' ? 'CASH' : '◈' }}</span
+    >
+  </span>
+</button>

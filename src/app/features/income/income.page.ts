@@ -1,11 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { averagePayAmount, payAmountCount, payAmountsForProfile, toMonthlyIncome } from './income.model';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { IncomeStreamService } from '../../services/income-stream.service';
 import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
+import { WalletService } from '../../services/wallet.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
@@ -14,7 +16,7 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-income-page',
-  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent],
+  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './income.page.html',
   styleUrl: './income.page.scss',
@@ -22,6 +24,7 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 export class IncomePage {
   private readonly expenseService = inject(ExpenseService);
   private readonly incomeStreamService = inject(IncomeStreamService);
+  readonly walletService = inject(WalletService);
   private readonly payPeriodFilter = inject(PayPeriodFilterService);
   readonly preferences = inject(AppPreferencesService);
   readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
@@ -55,6 +58,9 @@ export class IncomePage {
   readonly payPeriodStart = signal('');
   readonly payPeriodEnd = signal('');
   readonly payPeriodAmount = signal('');
+  readonly payPeriodWalletId = signal(
+    this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '',
+  );
   readonly nextPayDate = signal(toLocalDateInputValue(this.profile().nextPayDate));
   readonly saved = signal(false);
   private readonly incomeFormDirty = signal(false);
@@ -75,6 +81,7 @@ export class IncomePage {
   readonly streamAmount = signal('');
   readonly streamDate = signal(toLocalDateInputValue(new Date()));
   readonly streamRepeatsMonthly = signal(false);
+  readonly streamWalletId = signal(this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '');
   readonly editingStreamId = signal<string | null>(null);
   readonly averagePayAmount = computed(() => averagePayAmount(this.payAmounts()));
   readonly fixedMonthlyEquivalent = computed(() =>
@@ -160,9 +167,10 @@ export class IncomePage {
     const startDate = this.payPeriodStart();
     const endDate = this.payPeriodEnd();
     if (!startDate || !endDate || startDate > endDate || !Number.isFinite(amount) || amount < 0) return;
+    if (this.walletService.wallets().length && !this.payPeriodWalletId()) return;
 
     const id = this.editingPayPeriodId() ?? crypto.randomUUID();
-    const period: PayPeriod = { id, startDate, endDate, amount };
+    const period: PayPeriod = { id, startDate, endDate, amount, walletId: this.payPeriodWalletId() || undefined };
     const periods = this.profile().payPeriods ?? [];
     const nextPeriods = this.editingPayPeriodId()
       ? periods.map((savedPeriod) => (this.payPeriodKey(savedPeriod) === id ? period : savedPeriod))
@@ -176,6 +184,7 @@ export class IncomePage {
     this.payPeriodStart.set(toLocalDateInputValue(period.startDate));
     this.payPeriodEnd.set(toLocalDateInputValue(period.endDate));
     this.payPeriodAmount.set(String(period.amount));
+    this.payPeriodWalletId.set(period.walletId ?? '');
   }
 
   deletePayPeriod(period: PayPeriod): void {
@@ -194,6 +203,7 @@ export class IncomePage {
     this.payPeriodStart.set('');
     this.payPeriodEnd.set('');
     this.payPeriodAmount.set('');
+    this.payPeriodWalletId.set(this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '');
   }
 
   payPeriodKey(period: PayPeriod): string {
@@ -203,12 +213,14 @@ export class IncomePage {
   saveIncomeStream(): void {
     const amount = Number(this.streamAmount());
     if (!this.streamName().trim() || !Number.isFinite(amount) || amount < 0 || !this.streamDate()) return;
+    if (this.walletService.wallets().length && !this.streamWalletId()) return;
     const stream = {
       name: this.streamName().trim(),
       type: this.streamType(),
       amount,
       date: this.streamDate(),
       repeatsMonthly: this.streamRepeatsMonthly(),
+      walletId: this.streamWalletId() || undefined,
     };
     const editingId = this.editingStreamId();
     if (editingId) {
@@ -227,6 +239,7 @@ export class IncomePage {
     this.streamAmount.set(String(stream.amount));
     this.streamDate.set(toLocalDateInputValue(stream.date));
     this.streamRepeatsMonthly.set(stream.repeatsMonthly);
+    this.streamWalletId.set(stream.walletId ?? '');
     if (typeof document !== 'undefined') {
       document.getElementById('other-income-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -244,5 +257,6 @@ export class IncomePage {
     this.streamAmount.set('');
     this.streamDate.set(toLocalDateInputValue(new Date()));
     this.streamRepeatsMonthly.set(false);
+    this.streamWalletId.set(this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '');
   }
 }

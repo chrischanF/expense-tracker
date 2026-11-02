@@ -1,0 +1,164 @@
+<section class="page-intro">
+  <div>
+    <p class="section-kicker">Accounts and cards</p>
+    <h2>Wallets</h2>
+    <p>Keep balances across your bank accounts, digital wallets, and cash in one place.</p>
+  </div>
+</section>
+
+<section
+  class="wallet-layout"
+  aria-label="Wallet management"
+>
+  <form
+    class="panel wallet-form"
+    (ngSubmit)="saveWallet()"
+  >
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">{{ editingId() ? 'Update account' : 'New account' }}</p>
+        <h2>{{ editingId() ? 'Edit wallet' : 'Add a wallet' }}</h2>
+      </div>
+    </div>
+    <label>
+      <span>Bank or provider</span>
+      <select
+        [ngModel]="bankCode()"
+        (ngModelChange)="setBankCode($event)"
+        name="bankCode"
+        required
+      >
+        @for (bank of banks; track bank.code) {
+          <option [value]="bank.code">{{ bank.name }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Account name</span>
+      <input
+        type="text"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        name="name"
+        maxlength="50"
+        required
+      />
+    </label>
+    <label>
+      <span>Account type</span>
+      <select
+        [ngModel]="accountType()"
+        (ngModelChange)="accountType.set($event)"
+        name="accountType"
+        required
+      >
+        @for (type of accountTypes; track type.value) {
+          <option [value]="type.value">{{ type.label }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span
+        >Starting balance <small>{{ preferences.currency() }}</small></span
+      >
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        [ngModel]="initialBalance()"
+        (ngModelChange)="initialBalance.set($event)"
+        name="initialBalance"
+        placeholder="0.00"
+        required
+      />
+    </label>
+    <label>
+      <span>Last four digits <small>Optional</small></span>
+      <input
+        type="text"
+        inputmode="numeric"
+        maxlength="4"
+        [ngModel]="accountNumberLast4()"
+        (ngModelChange)="accountNumberLast4.set($event)"
+        name="accountNumberLast4"
+        placeholder="4821"
+      />
+    </label>
+    <div class="wallet-form-actions">
+      @if (editingId()) {
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="resetForm()"
+        >
+          Cancel
+        </button>
+      }
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        {{ editingId() ? 'Save changes' : 'Add wallet' }}
+      </button>
+    </div>
+  </form>
+
+  <div class="wallets-section">
+    <div class="wallets-heading">
+      <div>
+        <p class="section-kicker">{{ walletService.walletBalances().length }} accounts</p>
+        <h2>Your wallets</h2>
+      </div>
+      @if (walletService.selectedWalletId()) {
+        <button
+          type="button"
+          class="text-link"
+          (click)="walletService.selectWallet(null)"
+        >
+          Clear filter
+        </button>
+      }
+    </div>
+    @if (walletService.walletBalances().length) {
+      <div class="wallet-card-grid">
+        @for (balance of walletService.walletBalances(); track balance.wallet.id) {
+          <article class="wallet-item">
+            <app-bank-card
+              [balance]="balance"
+              [selected]="walletService.selectedWalletId() === balance.wallet.id"
+              (selectedChange)="walletService.selectWallet(balance.wallet.id)"
+            />
+            <div class="wallet-balance-detail">
+              <span>Starting {{ formatCurrency(balance.initialBalance) }}</span>
+              <span
+                >In {{ formatCurrency(balance.totalInflows) }} · Out {{ formatCurrency(balance.totalExpenses) }}</span
+              >
+            </div>
+            <div class="wallet-actions">
+              <button
+                type="button"
+                class="table-action edit-action"
+                (click)="editWallet(balance.wallet)"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="table-action delete-action"
+                (click)="deleteWallet(balance.wallet.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="wallet-empty-state">
+        <strong>No wallets added</strong>
+        <p>Create a cash, bank, or digital wallet to track its live balance from linked transactions.</p>
+      </div>
+    }
+  </div>
+</section>
+<p>wallet works!</p>

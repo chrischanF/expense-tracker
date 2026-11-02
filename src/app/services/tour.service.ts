@@ -121,6 +121,13 @@ export class TourService {
         { element: '.income-projection', popover: { title: 'Monthly projection', description: 'The fixed-pay estimate uses your average paycheck across a full year.' } },
         { element: '.income-streams', popover: { title: 'Track other income', description: 'Add freelance work, dividends, gifts, bonuses, or asset sales. One-time income counts only in its received month; repeating streams count monthly from their start date.' } },
       ],
+      '/wallet': [
+        { element: '.page-intro', popover: { title: 'Manage your accounts', description: 'Track balances across your bank accounts, digital wallets, and cash accounts from one place.' } },
+        { element: '.wallet-form', popover: { title: 'Add or edit a wallet', description: 'Choose a Philippine bank or provider, name the account, select its type, and enter its starting balance. The last four digits are optional.' } },
+        { element: '.wallets-section', popover: { title: 'Live wallet balances', description: 'Balances update from the starting amount, linked pay-period deposits and other income, and wallet-linked expenses.' } },
+        { element: '.wallet-card-grid', popover: { title: 'Filter by account', description: 'Select a bank card to filter dashboard spending and analytics to that wallet. Select it again or clear the filter to show all accounts.' } },
+        { element: '.wallet-actions', popover: { title: 'Maintain account details', description: 'Edit a wallet’s account details or remove it from your list. Removing a wallet does not delete its linked transactions.' } },
+      ],
       '/recurring': [
         { element: '.recurring-editor', popover: { title: 'Add a monthly commitment', description: 'Set the expected amount, category, payment source, and day of the month.' } },
         { element: '.recurring-list', popover: { title: 'Manage recurring expenses', description: 'Pause, resume, edit, or remove commitments. Active items create one ledger entry per month after their due day.' } },

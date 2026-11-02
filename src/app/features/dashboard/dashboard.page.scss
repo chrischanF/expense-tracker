@@ -61,6 +61,49 @@
   min-width: min(220px, 100%);
 }
 
+.dashboard-wallets {
+  margin: 0 0 16px;
+}
+
+.dashboard-wallets-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dashboard-wallets-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.dashboard-wallet-cards {
+  display: grid;
+  grid-auto-columns: minmax(230px, 290px);
+  grid-auto-flow: column;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scroll-snap-type: x proximity;
+}
+
+.dashboard-wallet-cards app-bank-card {
+  scroll-snap-align: start;
+}
+
+.wallet-filter-clear {
+  margin-top: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
 .dashboard-grid,
 .planning-summary-grid {
   display: grid;

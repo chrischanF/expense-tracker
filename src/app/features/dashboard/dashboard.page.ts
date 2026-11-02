@@ -10,13 +10,15 @@ import { BillReminderService } from '../../services/bill-reminder.service';
 import { PlanningService } from '../../services/planning.service';
 import { getUpcomingBills } from '../../services/planning.model';
 import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
+import { WalletService } from '../../services/wallet.service';
 import { BudgetProgressComponent } from '../../shared/budget-progress/budget-progress.component';
+import { BankCardComponent } from '../wallet/bank-card.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
 import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [BudgetProgressComponent, DatePipe, LoaderComponent, RouterLink],
+  imports: [BankCardComponent, BudgetProgressComponent, DatePipe, LoaderComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
@@ -33,6 +35,7 @@ export class DashboardPage {
 
   private readonly expensesService = inject(ExpenseService);
   private readonly incomeStreams = inject(IncomeStreamService);
+  readonly walletService = inject(WalletService);
   private readonly analytics = inject(AnalyticsService);
   private readonly payPeriodFilter = inject(PayPeriodFilterService);
   readonly preferences = inject(AppPreferencesService);
@@ -53,6 +56,11 @@ export class DashboardPage {
   );
 
   readonly expenses = this.expensesService.expenses;
+  readonly walletBalances = this.walletService.walletBalances;
+  private readonly selectedExpenses = computed(() => {
+    const walletId = this.walletService.selectedWalletId();
+    return walletId ? this.expenses().filter((expense) => expense.walletId === walletId) : this.expenses();
+  });
   readonly incomeProfile = this.expensesService.incomeProfile;
   readonly activePayPeriod = this.payPeriodFilter.selectedPeriod;
   readonly fixedMonthlyIncome = this.expensesService.monthlyIncome;
@@ -61,6 +69,10 @@ export class DashboardPage {
   readonly baseMonthExpenses = computed(() =>
     this.expensesService
       .getExpensesByDateRange('month')
+      .filter(
+        (expense) =>
+          !this.walletService.selectedWalletId() || expense.walletId === this.walletService.selectedWalletId(),
+      )
       .map((expense) => ({
         expense,
         amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),
@@ -71,7 +83,7 @@ export class DashboardPage {
   readonly overviewExpenses = computed(() => {
     const period = this.activePayPeriod();
     if (!period) return this.baseMonthExpenses();
-    return this.payPeriodFilter.filterExpenses(this.expenses()).map((expense) => ({
+    return this.payPeriodFilter.filterExpenses(this.selectedExpenses()).map((expense) => ({
       ...expense,
       amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()) ?? 0,
     }));

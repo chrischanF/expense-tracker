@@ -15,7 +15,7 @@ export class AppPreferencesService {
   }
 
   toggleTheme(): void {
-    this.theme.update((theme) => theme === 'dark' ? 'light' : 'dark');
+    this.theme.update((theme) => (theme === 'dark' ? 'light' : 'dark'));
     this.applyTheme(this.theme());
     this.persist('expense-tracker.theme', this.theme());
   }
@@ -48,7 +48,7 @@ export class AppPreferencesService {
 
   private readCurrency(): string {
     const stored = this.readStoredValue('expense-tracker.selected-currency');
-    return stored && this.getCurrencyList().includes(stored) ? stored : 'USD';
+    return stored && this.getCurrencyList().includes(stored) ? stored : 'PHP';
   }
 
   private readStoredValue(key: string): string | null {
@@ -80,9 +80,36 @@ export class AppPreferencesService {
   }
 
   private getCurrencyList(): string[] {
-    const values = typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl
-      ? Intl.supportedValuesOf('currency')
-      : ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'BRL', 'MXN', 'ZAR', 'SEK', 'NOK', 'DKK', 'PLN', 'RON', 'AED', 'SGD', 'HKD', 'SAR', 'NGN', 'EGP', 'KES', 'RSD'];
+    const values =
+      typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl
+        ? Intl.supportedValuesOf('currency')
+        : [
+            'USD',
+            'EUR',
+            'GBP',
+            'JPY',
+            'CAD',
+            'AUD',
+            'CHF',
+            'CNY',
+            'INR',
+            'BRL',
+            'MXN',
+            'ZAR',
+            'SEK',
+            'NOK',
+            'DKK',
+            'PLN',
+            'RON',
+            'AED',
+            'SGD',
+            'HKD',
+            'SAR',
+            'NGN',
+            'EGP',
+            'KES',
+            'RSD',
+          ];
 
     return [...new Set(values)].sort();
   }

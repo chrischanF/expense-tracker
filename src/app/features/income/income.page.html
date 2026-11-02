@@ -152,6 +152,29 @@
         />
       </div>
     </label>
+    @if (walletService.wallets().length) {
+      <label>
+        <span>Deposit to wallet</span>
+        <select
+          [ngModel]="payPeriodWalletId()"
+          (ngModelChange)="payPeriodWalletId.set($event)"
+          name="payPeriodWalletId"
+          required
+        >
+          <option
+            value=""
+            disabled
+          >
+            Select wallet
+          </option>
+          @for (wallet of walletService.wallets(); track wallet.id) {
+            <option [value]="wallet.id">{{ wallet.name }}</option>
+          }
+        </select>
+      </label>
+    } @else {
+      <p class="wallet-form-hint">Add a <a routerLink="/wallet">wallet</a> to assign this deposit.</p>
+    }
     <div class="income-stream-submit">
       @if (editingPayPeriodId()) {
         <button
@@ -304,6 +327,29 @@
         required
       />
     </label>
+    @if (walletService.wallets().length) {
+      <label>
+        <span>Deposit to wallet</span>
+        <select
+          [ngModel]="streamWalletId()"
+          (ngModelChange)="streamWalletId.set($event)"
+          name="streamWalletId"
+          required
+        >
+          <option
+            value=""
+            disabled
+          >
+            Select wallet
+          </option>
+          @for (wallet of walletService.wallets(); track wallet.id) {
+            <option [value]="wallet.id">{{ wallet.name }}</option>
+          }
+        </select>
+      </label>
+    } @else {
+      <p class="wallet-form-hint">Add a <a routerLink="/wallet">wallet</a> to assign this income.</p>
+    }
     <label class="monthly-repeat-option">
       <input
         type="checkbox"

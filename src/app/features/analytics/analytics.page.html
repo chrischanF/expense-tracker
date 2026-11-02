@@ -17,6 +17,15 @@
       ariaLabel="Filter analytics by payment source"
     />
   </label>
+  @if (walletService.selectedWallet()) {
+    <button
+      class="text-link"
+      type="button"
+      (click)="walletService.selectWallet(null)"
+    >
+      {{ walletService.selectedWallet()?.name }} · Clear wallet
+    </button>
+  }
 </section>
 
 <section

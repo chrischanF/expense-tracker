@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.bank-card {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 192px;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 18px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: linear-gradient(125deg, var(--card-primary), color-mix(in srgb, var(--card-secondary) 82%, #111827));
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.bank-card:hover {
+  transform: translateY(-2px);
+}
+
+.bank-card.is-selected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--card-primary);
+}
+
+.card-topline,
+.card-bottomline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bank-name {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.account-type {
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.card-chip {
+  display: grid;
+  width: 34px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 5px;
+  background: linear-gradient(135deg, #f8e9b9, #bba469);
+}
+
+.card-chip span {
+  width: 21px;
+  height: 14px;
+  border: 1px solid rgb(61 54 35 / 60%);
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 46%,
+    rgb(61 54 35 / 40%) 48%,
+    rgb(61 54 35 / 40%) 52%,
+    transparent 54%
+  );
+}
+
+.account-number {
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+}
+
+.balance-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.balance-copy > span {
+  color: rgb(255 255 255 / 76%);
+  font-size: 0.62rem;
+}
+
+.balance-copy strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-mark {
+  align-self: flex-end;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bank-card {
+    transition: none;
+  }
+}

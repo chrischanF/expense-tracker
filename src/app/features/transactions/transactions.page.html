@@ -118,6 +118,29 @@
           ariaLabel="Source"
         />
       </label>
+      @if (walletService.wallets().length) {
+        <label>
+          <span>Wallet</span>
+          <select
+            [ngModel]="walletId()"
+            (ngModelChange)="walletId.set($event)"
+            name="walletId"
+            required
+          >
+            <option
+              value=""
+              disabled
+            >
+              Select wallet
+            </option>
+            @for (wallet of walletService.wallets(); track wallet.id) {
+              <option [value]="wallet.id">{{ wallet.name }}</option>
+            }
+          </select>
+        </label>
+      } @else {
+        <p class="wallet-form-hint">Add a <a routerLink="/wallet">wallet</a> to assign this expense to an account.</p>
+      }
       <label>
         <span>Date</span>
         <input

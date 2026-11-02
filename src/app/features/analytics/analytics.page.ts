@@ -6,6 +6,7 @@ import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
+import { WalletService } from '../../services/wallet.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
 import type { DropdownOption } from '../../types/dropdown.types';
@@ -21,6 +22,7 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 export class AnalyticsPage {
   private readonly expenseService = inject(ExpenseService);
   private readonly analytics = inject(AnalyticsService);
+  readonly walletService = inject(WalletService);
   readonly payPeriodFilter = inject(PayPeriodFilterService);
   private readonly preferences = inject(AppPreferencesService);
   readonly exchangeRates = inject(ExchangeRateService);
@@ -50,6 +52,10 @@ export class AnalyticsPage {
   private readonly baseExpenses = computed(() =>
     this.payPeriodFilter
       .filterExpenses(this.expenseService.expenses())
+      .filter(
+        (expense) =>
+          !this.walletService.selectedWalletId() || expense.walletId === this.walletService.selectedWalletId(),
+      )
       .map((expense) => ({
         expense,
         amount: this.exchangeRates.toBase(expense.amount, expense.currency || this.preferences.currency()),

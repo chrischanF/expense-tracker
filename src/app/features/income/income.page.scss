@@ -82,6 +82,7 @@
 }
 
 .income-stream-form input:not([type='checkbox']),
+.income-stream-form select,
 .income-form input {
   width: 100%;
   min-height: 42px;
@@ -91,6 +92,17 @@
   outline: 0;
   background: var(--surface-raised);
   color: var(--text);
+}
+
+.wallet-form-hint {
+  align-self: end;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.wallet-form-hint a {
+  color: var(--accent-strong);
 }
 
 .income-stream-form input:not([type='checkbox']):focus,

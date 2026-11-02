@@ -18,6 +18,43 @@
   </div>
 </section>
 
+@if (walletBalances().length) {
+  <section
+    class="dashboard-wallets"
+    aria-label="Wallet balances"
+  >
+    <div class="dashboard-wallets-heading">
+      <div>
+        <p class="section-kicker">Accounts at a glance</p>
+        <h2>{{ walletService.selectedWallet() ? walletService.selectedWallet()?.name : 'Your wallets' }}</h2>
+      </div>
+      <a
+        class="text-link"
+        routerLink="/wallet"
+        ><span aria-hidden="true">＋</span> Add wallet</a
+      >
+    </div>
+    <div class="dashboard-wallet-cards">
+      @for (balance of walletBalances(); track balance.wallet.id) {
+        <app-bank-card
+          [balance]="balance"
+          [selected]="walletService.selectedWalletId() === balance.wallet.id"
+          (selectedChange)="walletService.selectWallet(balance.wallet.id)"
+        />
+      }
+    </div>
+    @if (walletService.selectedWalletId()) {
+      <button
+        type="button"
+        class="wallet-filter-clear"
+        (click)="walletService.selectWallet(null)"
+      >
+        Show all accounts
+      </button>
+    }
+  </section>
+}
+
 <section
   class="stats-grid"
   aria-label="Financial summary"

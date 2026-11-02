@@ -6,6 +6,7 @@ export interface ExpenseItem {
   date: string;
   note: string;
   createdAt: string;
+  walletId?: string;
   currency?: string;
   merchant?: string;
   recurringId?: string;

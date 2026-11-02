@@ -2,11 +2,12 @@ import { DatePipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AppPreferencesService } from '../../services/app-preferences.service';
 import { ExpenseService } from '../../services/expense.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { PayPeriodFilterService } from '../../services/pay-period-filter.service';
+import { WalletService } from '../../services/wallet.service';
 import { ReceiptParserService } from '../../services/receipt-parser.service';
 import { DropdownComponent } from '../../shared/dropdown/dropdown.component';
 import { LoaderComponent } from '../../shared/loader/loader.component';
@@ -17,13 +18,14 @@ import { toLocalDateInputValue } from '../../utils/date-normalization';
 
 @Component({
   selector: 'app-transactions-page',
-  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent],
+  imports: [DatePipe, FormsModule, DropdownComponent, LoaderComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transactions.page.html',
   styleUrl: './transactions.page.scss',
 })
 export class TransactionsPage {
   private readonly expenseService = inject(ExpenseService);
+  readonly walletService = inject(WalletService);
   readonly payPeriodFilter = inject(PayPeriodFilterService);
   private readonly document = inject(DOCUMENT);
   private readonly receiptParser = inject(ReceiptParserService);
@@ -73,6 +75,7 @@ export class TransactionsPage {
   readonly note = signal('');
   readonly merchant = signal('');
   readonly currency = signal(this.preferences.currency());
+  readonly walletId = signal(this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '');
   readonly captureStatus = signal('');
   readonly isCapturing = signal(false);
   readonly firestoreBusy = computed(() => this.expenseService.isLoading() || this.expenseService.isSaving());
@@ -89,6 +92,7 @@ export class TransactionsPage {
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params.get('action') === 'add') {
+        this.resetForm();
         this.showForm.set(true);
       }
     });
@@ -146,6 +150,7 @@ export class TransactionsPage {
     this.note.set(expense.note || '');
     this.merchant.set(expense.merchant || '');
     this.currency.set(expense.currency || this.preferences.currency());
+    this.walletId.set(expense.walletId ?? '');
     this.showForm.set(true);
   }
 
@@ -159,6 +164,7 @@ export class TransactionsPage {
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !this.expenseDate()) {
       return;
     }
+    if (this.walletService.wallets().length && !this.walletId()) return;
 
     const expense = {
       amount: parsedAmount,
@@ -168,6 +174,7 @@ export class TransactionsPage {
       merchant: this.merchant().trim(),
       date: this.expenseDate(),
       note: this.note().trim(),
+      walletId: this.walletId() || undefined,
     };
     const editingId = this.editingExpenseId();
 
@@ -256,6 +263,7 @@ export class TransactionsPage {
     this.note.set('');
     this.merchant.set('');
     this.currency.set(this.preferences.currency());
+    this.walletId.set(this.walletService.selectedWalletId() ?? this.walletService.wallets()[0]?.id ?? '');
     this.captureStatus.set('');
   }
 

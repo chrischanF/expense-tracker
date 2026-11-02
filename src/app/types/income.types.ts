@@ -2,6 +2,7 @@ export type IncomeFrequency = 'weekly' | 'biweekly' | 'twice-monthly' | 'monthly
 
 export interface PayPeriod {
   id?: string;
+  walletId?: string;
   startDate: string;
   endDate: string;
   amount: number;
@@ -17,6 +18,7 @@ export interface IncomeProfile {
 
 export interface IncomeStream {
   id: string;
+  walletId?: string;
   name: string;
   type: string;
   amount: number;
